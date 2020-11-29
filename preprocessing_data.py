@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 
+import torch
+
+import time
+
 data = pd.read_csv('D:/Mines/3A/ML/Projet/archive/Radar_Traffic_Counts.csv')
 
 data = data.drop(columns=['location_name', 'Time Bin'])
@@ -19,62 +23,77 @@ data = data.dropna()
 data['location_latitude'] = (data['location_latitude'] - data['location_latitude'].min()) / (data['location_latitude'].max() - data['location_latitude'].min())
 data['location_longitude'] = (data['location_longitude'] - data['location_longitude'].min()) / (data['location_longitude'].max() - data['location_longitude'].min())
 print(data[2500:2505])
-
 #print(data[np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)])
 
-def series(heure, Date_J, latitude, longitude, direction, longueur_serie):
+def series(Date_J, latitude, longitude, direction, longueur_serie):
     """
-        Retourne 3 séries de valeurs de Volume pour une heure donnée, un jour, une position, et une direction
-        longueur_serie : 
+        Retourne 3 séries de longueur_serie valeurs de Volume pour un jour, une position, et une direction
     """
-    serie_J, serie_J_moins_1, serie_J_moins_7 = [], [], []
-    if heure >= (longueur_serie - 1):
-        row_J = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
-        row_J_moins_1 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')
+    row_J = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
+    row_J_moins_1 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')
 ) & (data['Direction'] == direction)]
-        row_J_moins_7 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')
+    row_J_moins_2 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(2, unit='d')
+) & (data['Direction'] == direction)]
+    row_J_moins_7 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')
+) & (data['Direction'] == direction)]
+    row_J_moins_8 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(8, unit='d')
 ) & (data['Direction'] == direction)]
 
-        if (row_J.empty or row_J_moins_1.empty or row_J_moins_7.empty):
-            return(None)
-
-        for h in range(heure + 1 - longueur_serie, heure + 1):
-            if h != heure:
-                serie_J.append(row_J[h].values[0])
-            serie_J_moins_1.append(row_J_moins_1[h].values[0])
-            serie_J_moins_7.append(row_J_moins_7[h].values[0])
+    if (row_J.empty or row_J_moins_1.empty or row_J_moins_7.empty):
+        return(None)
     
-    # Dans le cas contraire, on a aussi besoin des valeurs du jour précédent car les séries de valeurs des volumes vont empiéter sur le jour précédent
+    elif (row_J_moins_2.empty or row_J_moins_8.empty):
+        valeurs_J, valeurs_J_moins_1, valeurs_J_moins_7 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:]
+
+        heure_min = longueur_serie - 1
+        nb_series = 24 - 2 * heure_min
+        target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series,longueur_serie-1)), np.zeros((nb_series,longueur_serie)), np.zeros((nb_series,longueur_serie))
+
+        for h in range(nb_series):
+            target[h] = valeurs_J[heure_min + h + longueur_serie - 1]
+            serie_J[h] = valeurs_J[heure_min + h : heure_min + h + longueur_serie - 1]
+            serie_J_moins_1[h] = valeurs_J_moins_1[heure_min + h : heure_min + h + longueur_serie]
+            serie_J_moins_7[h] = valeurs_J_moins_7[heure_min + h : heure_min + h + longueur_serie]
+
     else:
-        print('ok')
-        row_J = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
-        row_J_moins_1 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')
-) & (data['Direction'] == direction)]
-        row_J_moins_2 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(2, unit='d')
-) & (data['Direction'] == direction)]
-        row_J_moins_7 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')
-) & (data['Direction'] == direction)]
-        row_J_moins_8 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(8, unit='d')
-) & (data['Direction'] == direction)]
+        valeurs_J, valeurs_J_moins_1, valeurs_J_moins_2, valeurs_J_moins_7, valeurs_J_moins_8 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_2.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:], row_J_moins_8.values.tolist()[0][8:]
+        V_J, V_J_1, V_J_7 = valeurs_J + valeurs_J_moins_1, valeurs_J_moins_1 + valeurs_J_moins_2, valeurs_J_moins_7 + valeurs_J_moins_8
 
-        if (row_J.empty or row_J_moins_1.empty or row_J_moins_2.empty or row_J_moins_7.empty or row_J_moins_8.empty):
-            return(None)
+        heure_min = 24
+        nb_series = 24 - (longueur_serie - 1)
+        target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series,longueur_serie-1)), np.zeros((nb_series,longueur_serie)), np.zeros((nb_series,longueur_serie))
 
-        for h in range(heure + 1 - longueur_serie, heure + 1):
-            if h < 0:
-                h2 = h % 24 # On prend une heure comprise en 0 et 23, mais on va chercher les données dans les jours J-1 correspondants
-                serie_J.append(row_J_moins_1[h2].values[0])
-                serie_J_moins_1.append(row_J_moins_2[h2].values[0])
-                serie_J_moins_7.append(row_J_moins_8[h2].values[0])
-            else:
-                if h != heure:
-                    serie_J.append(row_J[h].values[0])
-                serie_J_moins_1.append(row_J_moins_1[h].values[0])
-                serie_J_moins_7.append(row_J_moins_7[h].values[0])
+        for h in range(nb_series):
+            target[h] = V_J[heure_min + h + longueur_serie - 1]
+            serie_J[h] = V_J[heure_min + h : heure_min + h + longueur_serie - 1]
+            serie_J_moins_1[h] = V_J_1[heure_min + h : heure_min + h + longueur_serie]
+            serie_J_moins_7[h] = V_J_7[heure_min + h : heure_min + h + longueur_serie]
+    
+    return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
-    return(serie_J, serie_J_moins_1, serie_J_moins_7)
+longueur_serie = 6
+t1 = time.time()
+for index, row in data[:1000].iterrows():
+    latitude, longitude = row['location_latitude'], row['location_longitude']
+    month, day_week, date = row['Month'], row['Day of Week'], row['Date']
+    direction = row['Direction']
 
-print(series(2, pd.to_datetime('2018-06-03'), 0.02498, 0.639365, 1, 6))
+    result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie)
+
+    if result is not None:
+        target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
+    #    print(target, serie_J, serie_J_moins_1, serie_J_moins_7)
+    #else: 
+    #    print('None')
+print(time.time() - t1)
+
+
+
+
 
 """
+
+print(series(2, pd.to_datetime('2018-06-03'), 0.02498, 0.639365, 1, 6))
+print(len(data))
+
 """
