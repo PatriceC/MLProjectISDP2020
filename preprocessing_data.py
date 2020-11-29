@@ -6,7 +6,7 @@ import torch
 import random
 import time
 
-data = pd.read_csv('D:/Mines/3A/ML/Projet/archive/Radar_Traffic_Counts.csv')
+data = pd.read_csv('./Radar_Traffic_Counts.csv')
 
 data = data.drop(columns=['location_name', 'Time Bin'])
 data['Direction'] = data['Direction'].astype('category').cat.codes
