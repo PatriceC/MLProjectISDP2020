@@ -6,25 +6,7 @@ import torch
 import random
 import time
 
-data = pd.read_csv('./Radar_Traffic_Counts.csv')
-
-data = data.drop(columns=['location_name', 'Time Bin'])
-data['Direction'] = data['Direction'].astype('category').cat.codes
-data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
-
-col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
-col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
-data = data.groupby(col)['Volume'].sum().reset_index()
-data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
-
-data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
-data = data.dropna()
-
-# On normalise (méthode min-max) les valeurs de latitude et longitude
-data['location_latitude'] = (data['location_latitude'] - data['location_latitude'].min()) / (data['location_latitude'].max() - data['location_latitude'].min())
-data['location_longitude'] = (data['location_longitude'] - data['location_longitude'].min()) / (data['location_longitude'].max() - data['location_longitude'].min())
-
-def series(Date_J, latitude, longitude, direction, longueur_serie):
+def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     """
         Retourne 3 séries de longueur_serie valeurs de Volume pour un jour, une position, et une direction
     """
@@ -70,23 +52,46 @@ def series(Date_J, latitude, longitude, direction, longueur_serie):
     
     return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
-longueur_serie = 6
-data_train, data_test = [], []
-for index, row in data.iterrows():
-    latitude, longitude = row['location_latitude'], row['location_longitude']
-    month, day_week, date = row['Month'], row['Day of Week'], row['Date']
-    direction = row['Direction']
+def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
+    data = pd.read_csv(file)
 
-    result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie)
+    data = data.drop(columns=['location_name', 'Time Bin'])
+    data['Direction'] = data['Direction'].astype('category').cat.codes
+    data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
 
-    if result is not None:
-        target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
+    col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
+    col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
+    data = data.groupby(col)['Volume'].sum().reset_index()
+    data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
-        for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-            if random.random() < 0.9:
-                data_train.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
-            else:
-                data_test.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
+    data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
+    data = data.dropna()
 
-np.savetxt('./data_train.txt', np.array(data_train))
-np.savetxt('./data_test.txt', np.array(data_test))
+    # On normalise (méthode min-max) les valeurs de latitude et longitude
+    data['location_latitude'] = (data['location_latitude'] - data['location_latitude'].min()) / (data['location_latitude'].max() - data['location_latitude'].min())
+    data['location_longitude'] = (data['location_longitude'] - data['location_longitude'].min()) / (data['location_longitude'].max() - data['location_longitude'].min())
+
+    data_train, data_test = [], []
+    for _, row in data.iterrows():
+        latitude, longitude = row['location_latitude'], row['location_longitude']
+        month, day_week, date = row['Month'], row['Day of Week'], row['Date']
+        direction = row['Direction']
+
+        result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie, data=data)
+
+        if result is not None:
+            target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
+
+            for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
+                if random.random() < 0.9:
+                    data_train.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
+                else:
+                    data_test.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
+
+    random.shuffle(data_train)
+    random.shuffle(data_test)
+
+    np.savetxt('./data_train.txt', np.array(data_train))
+    np.savetxt('./data_test.txt', np.array(data_test))
+
+    return(np.array(data_train), np.array(data_train))
