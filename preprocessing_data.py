@@ -3,6 +3,7 @@ import numpy as np
 
 import torch
 
+import random
 import time
 
 data = pd.read_csv('D:/Mines/3A/ML/Projet/archive/Radar_Traffic_Counts.csv')
@@ -22,8 +23,6 @@ data = data.dropna()
 # On normalise (méthode min-max) les valeurs de latitude et longitude
 data['location_latitude'] = (data['location_latitude'] - data['location_latitude'].min()) / (data['location_latitude'].max() - data['location_latitude'].min())
 data['location_longitude'] = (data['location_longitude'] - data['location_longitude'].min()) / (data['location_longitude'].max() - data['location_longitude'].min())
-print(data[2500:2505])
-#print(data[np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)])
 
 def series(Date_J, latitude, longitude, direction, longueur_serie):
     """
@@ -72,8 +71,8 @@ def series(Date_J, latitude, longitude, direction, longueur_serie):
     return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
 longueur_serie = 6
-t1 = time.time()
-for index, row in data[:1000].iterrows():
+data_train, data_test = [], []
+for index, row in data.iterrows():
     latitude, longitude = row['location_latitude'], row['location_longitude']
     month, day_week, date = row['Month'], row['Day of Week'], row['Date']
     direction = row['Direction']
@@ -82,18 +81,12 @@ for index, row in data[:1000].iterrows():
 
     if result is not None:
         target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
-    #    print(target, serie_J, serie_J_moins_1, serie_J_moins_7)
-    #else: 
-    #    print('None')
-print(time.time() - t1)
 
+        for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
+            if random.random() < 0.9:
+                data_train.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
+            else:
+                data_test.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
 
-
-
-
-"""
-
-print(series(2, pd.to_datetime('2018-06-03'), 0.02498, 0.639365, 1, 6))
-print(len(data))
-
-"""
+np.savetxt('./data_train.txt', np.array(data_train))
+np.savetxt('./data_test.txt', np.array(data_test))
