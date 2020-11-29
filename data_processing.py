@@ -11,10 +11,11 @@ import torch
 
 # %% Load Data
 
-data_load = pd.read_csv('./Radar_Traffic_Counts.csv')
+data_load = pd.read_csv('D:/Mines/3A/ML/Projet/archive/Radar_Traffic_Counts.csv')
+print(data_load.head(5))
 data_load = data_load.drop(columns=['Time Bin','location_name'])
 data_load['Direction'] = data_load['Direction'].astype('category').cat.codes
-
+print(data_load.head(5))
 
 # %% Select set
 
@@ -97,3 +98,12 @@ def main(data=data_load, time_thin='Hour', series=6, pred=1, batch_size=128, tra
         list(zip(zip(direction_set[perm[n_train:]], data_set[perm[n_train:],:-pred]),
                  data_set[perm[n_train:],-pred:])), batch_size=batch_size)
     return train_set, test_set
+
+a,b = main(data=data_load, time_thin='Hour', series=6, pred=1, batch_size=128, train_per_length=0.8)
+
+compt = 0
+for i in a:
+    print(i)
+    compt += 1
+    if compt == 10:
+        break
