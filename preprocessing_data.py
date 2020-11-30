@@ -4,7 +4,6 @@ import numpy as np
 import torch
 
 import random
-import time
 
 def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     """
@@ -97,3 +96,68 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     np.savetxt('./data_test_' + str(longueur_serie) + '.txt', np.array(data_test))
 
     return(np.array(data_train), np.array(data_train))
+
+
+def data_loader(data_train, data_test, longueur_serie, batch_size = 128):
+    """
+    On construit nos DataLoaders de train/test que nous utiliserons
+    pour itérer sur les données pour l'apprentissage de modèles.
+
+    Parameters
+    ----------
+    data_train : TYPE array
+        DESCRIPTION. Matrix of train data
+    data_test : TYPE array
+        DESCRIPTION. MAtrix of test data
+    longueur_serie : TYPE int
+        DESCRIPTION. Length of series
+    batch_size : TYPE int, optional
+        DESCRIPTION. The default is 128.
+
+    Returns
+    -------
+    data_loader_train : TYPE DataLoader
+        DESCRIPTION. Train DataLoader
+    data_loader_test : TYPE DataLoader
+        DESCRIPTION. Test DataLoader
+
+    """
+
+    n_train, n_test = data_train.shape[0], data_test.shape[0]
+
+    latitude_train = data_train[:,0]
+    latitude_test = data_test[:,0]
+    longitude_train = data_train[:,1]
+    longitude_test = data_test[:,1]
+    
+    month_train = np.zeros(((n_train, 12)))
+    month_test = np.zeros((n_test, 12))
+    day_week_train = np.zeros(((n_train, 7)))
+    day_week_test = np.zeros(((n_train, 7)))
+    direction_train = np.zeros(((n_train, 5)))
+    direction_test = np.zeros(((n_train, 5)))
+    
+    # On crée les one-hot vectors pour les données train/test de mois, jour de la semaine, direction
+    for index, elements in enumerate(data_train):
+        month_train[index] = np.eye(12)[int(round(elements[2]))] # On utilise int(round(...)) à cause des erreurs d'arrondis parfois avec les float
+        day_week_train[index] = np.eye(7)[int(round(elements[3]))]
+        direction_train[index] = np.eye(5)[int(round(elements[4]))]
+    for index, elements in enumerate(data_test):
+        month_test[index] = np.eye(12)[int(round(elements[2]))]
+        day_week_test[index] = np.eye(7)[int(round(elements[3]))]
+        direction_test[index] = np.eye(5)[int(round(elements[4]))]
+    
+    serie_J_train = data_train[:,-3*longueur_serie:-1-2*longueur_serie]
+    serie_J_test = data_test[:,-3*longueur_serie:-1-2*longueur_serie]
+    serie_J_moins_1_train = data_train[:,-1-2*longueur_serie:-1-longueur_serie]
+    serie_J_moins_1_test = data_test[:,-1-2*longueur_serie:-1-longueur_serie]
+    serie_J_moins_7_train = data_train[:,-1-longueur_serie:-1]
+    serie_J_moins_7_test = data_test[:,-1-longueur_serie:-1]
+    target_train = data_train[:,-1]
+    target_test = data_test[:,-1]
+    
+    data_loader_train = torch.utils.data.DataLoader(list(zip(zip(latitude_train, longitude_train, month_train, day_week_train, direction_train, serie_J_train, serie_J_moins_1_train, serie_J_moins_7_train), target_train)), batch_size= batch_size, shuffle=True)
+    data_loader_test = torch.utils.data.DataLoader(list(zip(zip(latitude_test, longitude_test, month_test, day_week_test, direction_test, serie_J_test, serie_J_moins_1_test, serie_J_moins_7_test), target_test)), batch_size= batch_size, shuffle=True)
+    
+    return data_loader_train, data_loader_test
+    ##### Fin de la création des DataLoaders de train/test
