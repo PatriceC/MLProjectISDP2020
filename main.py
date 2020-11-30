@@ -13,14 +13,15 @@ import torch.nn as nn
 import preprocessing_data
 import LSTM
 
-longueur_serie = 6
+longueur_serie = 9
 
 ## On crée un dataset train/test pour l'apprentissage de notre modèle
-#data_train, data_test = preprocessing_data.process_data(longueur_serie=longueur_serie)
+data_train, data_test = preprocessing_data.process_data(longueur_serie=longueur_serie)
 
 # Ou alors on récupère un dataset déjà créé
 data_train = np.genfromtxt('./data_train_' + str(longueur_serie) + '.txt')
 data_test = np.genfromtxt('./data_test_' + str(longueur_serie) + '.txt')
+
 n_train, n_test = data_train.shape[0], data_test.shape[0]
 
 ##### On dénit construit nos DataLoaders de train/test que nous utiliserons pour itérer sur les données pour l'apprentissage de modèles.
@@ -62,9 +63,9 @@ data_loader_test = torch.utils.data.DataLoader(list(zip(zip(latitude_test, longi
 ##### Fin de la création des DataLoaders de train/test
 
 ##### Dénition du model utilisé
-model = LSTM.LSTM_NN()
-error = nn.MSELoss()
-learning_rate = 0.01
+model = LSTM.LSTM_NN(longueur_serie=longueur_serie)
+error = nn.L1Loss()
+learning_rate = 0.001
 weight_decay = 0.0001
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 #####
@@ -72,56 +73,58 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=
 test_loss_list, pourcentage_loss_list = [], []
 
 count, pourcentage = 0, 0.
-for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_train:
+for epoch in range(2):
+    learning_rate /= 2
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_train:
 
-    latitude = latitude.float().unsqueeze(1)
-    longitude = longitude.float().unsqueeze(1)
-    month = month.float()
-    day_week = day_week.float()
-    direction = direction.float()
-    serie_J = serie_J.float().unsqueeze(1)
-    serie_J_moins_1 = serie_J_moins_1.float().unsqueeze(1)
-    serie_J_moins_7 = serie_J_moins_7.float().unsqueeze(1)
-    target = target.float().unsqueeze(1)
+        latitude = latitude.float().unsqueeze(1)
+        longitude = longitude.float().unsqueeze(1)
+        month = month.float()
+        day_week = day_week.float()
+        direction = direction.float()
+        serie_J = serie_J.float().unsqueeze(1)
+        serie_J_moins_1 = serie_J_moins_1.float().unsqueeze(1)
+        serie_J_moins_7 = serie_J_moins_7.float().unsqueeze(1)
+        target = target.float().unsqueeze(1)
 
-    output = model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7)
-    loss = error(output, target)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+        output = model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7)
+        loss = error(output, target)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-    count += 128
+        count += 128
 
-    if count >= pourcentage * n_train:
-        test_loss_batch = []
+        if count >= pourcentage * n_train:
+            test_loss_batch = []
 
-        for (latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t), target_t in data_loader_test:
+            for (latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t), target_t in data_loader_test:
 
-            latitude_t = latitude_t.float().unsqueeze(1)
-            longitude_t = longitude_t.float().unsqueeze(1)
-            month = month.float()
-            day_week = day_week.float()
-            direction = direction.float()
-            serie_J_t = serie_J_t.float().unsqueeze(1)
-            serie_J_moins_1_t = serie_J_moins_1_t.float().unsqueeze(1)
-            serie_J_moins_7_t = serie_J_moins_7_t.float().unsqueeze(1)
-            target_t = target_t.float().unsqueeze(1)
+                latitude_t = latitude_t.float().unsqueeze(1)
+                longitude_t = longitude_t.float().unsqueeze(1)
+                month = month.float()
+                day_week = day_week.float()
+                direction = direction.float()
+                serie_J_t = serie_J_t.float().unsqueeze(1)
+                serie_J_moins_1_t = serie_J_moins_1_t.float().unsqueeze(1)
+                serie_J_moins_7_t = serie_J_moins_7_t.float().unsqueeze(1)
+                target_t = target_t.float().unsqueeze(1)
 
-            output_t = model.forward(latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t)
-            loss_test = error(output_t, target_t).data.item()
-            test_loss_batch.append(loss_test)
+                output_t = model.forward(latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t)
+                loss_test = error(output_t, target_t).data.item()
+                test_loss_batch.append(loss_test)
 
-        test_loss = np.mean(test_loss_batch)
-        print("Pourcentage:", 100*pourcentage, "%")
-        print(test_loss)
-        print()
-        pourcentage_loss_list.append(100*pourcentage)
-        test_loss_list.append(test_loss)
-        pourcentage += 0.1
+            test_loss = np.mean(test_loss_batch)
+            print("Pourcentage:", 100*pourcentage, "%")
+            print(test_loss)
+            print()
+            pourcentage_loss_list.append(100*pourcentage)
+            test_loss_list.append(test_loss)
+            pourcentage += 0.1
 
-print(pourcentage_loss_list, test_loss_list)
 plt.plot(pourcentage_loss_list, test_loss_list)
-plt.xlabel("Pourcentage")
-plt.ylabel("MSE Loss")
-plt.title("Test Loss vs Pourcentage")
+plt.xlabel("Pourcentage Epochs")
+plt.ylabel("MAE Loss")
+plt.title("Test Loss vs Pourcentage Epochs")
 plt.show()
