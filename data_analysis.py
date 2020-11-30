@@ -6,6 +6,7 @@ Created on Fri Nov 27 19:19:45 2020
 """
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 # %% Load Data
 
@@ -27,5 +28,6 @@ data_pd.index = data_pd['Datetime']
 data_pd_0 = data_pd[data_pd['Direction'] == 0].sort_values(['Year', 'Month', 'Day'])
 
 data_pd_0.loc['2018-07','Volume'].plot()
+data_pd_0.loc['2018-07-19','Volume'].plot()
 plt.show()
 data_pd_0.loc['2018-07-19','Volume'].plot()
