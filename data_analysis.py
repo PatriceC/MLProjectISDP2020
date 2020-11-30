@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 # %% Load Data
 
-data_load = pd.read_csv('C:\\Users\\patri\\Desktop\\4A\\MLProject\\Radar_Traffic_Counts.csv')
+data_load = pd.read_csv('./Radar_Traffic_Counts.csv')
 data_load = data_load.drop(columns=['Time Bin', 'location_name'])
 data_load['Direction'] = data_load['Direction'].astype('category').cat.codes
 
