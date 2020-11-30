@@ -70,6 +70,8 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     # On normalise (méthode min-max) les valeurs de latitude et longitude
     data['location_latitude'] = (data['location_latitude'] - data['location_latitude'].min()) / (data['location_latitude'].max() - data['location_latitude'].min())
     data['location_longitude'] = (data['location_longitude'] - data['location_longitude'].min()) / (data['location_longitude'].max() - data['location_longitude'].min())
+    # On garde les valeurs de mois entre 0 et 11 (plutôt que 1 et 12), ce qui sera plus pratique pour créer des one-hot vectors
+    data['Month'] = data['Month'] - 1
 
     data_train, data_test = [], []
     for _, row in data.iterrows():
@@ -91,7 +93,7 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     random.shuffle(data_train)
     random.shuffle(data_test)
 
-    np.savetxt('./data_train.txt', np.array(data_train))
-    np.savetxt('./data_test.txt', np.array(data_test))
+    np.savetxt('./data_train_' + str(longueur_serie) + '.txt', np.array(data_train))
+    np.savetxt('./data_test_' + str(longueur_serie) + '.txt', np.array(data_test))
 
     return(np.array(data_train), np.array(data_train))
