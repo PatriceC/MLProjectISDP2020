@@ -224,17 +224,17 @@ for epoch in range(num_epochs):
     count += 1
 
 t1 = time.time()
-total = t0 - t1
+total = t1 - t0
 
 # Plot
 print(total)
 plt.plot(loss_list_test)
-plt.xlabel("epoch")
+plt.xlabel("epoch * nb_batch")
 plt.ylabel("Loss")
 plt.title("Test")
 plt.show()
 plt.plot(loss_test_m)
-plt.xlabel("epoch * nb_batch")
+plt.xlabel("epoch")
 plt.ylabel("Loss")
 plt.title("Test mean")
 plt.show()
@@ -248,3 +248,4 @@ plt.xlabel("epoch")
 plt.ylabel("Loss")
 plt.title("Train mean")
 plt.show()
+
