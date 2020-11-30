@@ -11,8 +11,9 @@ import torch.nn as nn
 
 import preprocessing_data
 import data_processing
-import LSTM
 
+import LSTM
+import CNN
 
 # %% Data Preprocessing
 
@@ -36,7 +37,7 @@ data_loader_train, data_loader_test = preprocessing_data.data_loader(data_train,
 
 # %% Définition du model utilisé
 
-model_dispo = ('LSTM')
+model_dispo = ['LSTM', 'CNN']
 nom_model = input("Choisir le modèle à traiter parmis : {}\n".format(model_dispo))
 
 if nom_model == 'LSTM':
@@ -48,9 +49,19 @@ if nom_model == 'LSTM':
     lr_dim = 2
     num_epoch = 2
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+elif nom_model == 'CNN':
+    model = CNN.CNN(S=longueur_serie).double()
+    print(model)
+    error = nn.L1Loss()
+    learning_rate = 0.01
+    weight_decay = 0.0001
+    lr_dim = 2
+    num_epoch = 2
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
 else:
     print("Erreur dans le choix du modèle")
 
 # %% Training and Testing
 
-model, error, pourcentage_loss_list, test_loss_list = data_processing.main(model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size)
+model, error, pourcentage_loss_list, test_loss_list = data_processing.main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size)

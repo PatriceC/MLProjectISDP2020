@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 
-def main(model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size):
+def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size):
     """
     
     Entrainement du modèle et Loss Test
@@ -107,7 +107,7 @@ def main(model, error, data_loader_train, data_loader_test, n_train, learning_ra
     plt.plot(pourcentage_loss_list, test_loss_list)
     plt.xlabel("Pourcentage * Epochs")
     plt.ylabel("MAE Loss")
-    plt.title("Test Loss vs Pourcentage Epochs")
+    plt.title("{}: Test Loss vs Pourcentage Epochs".format(nom_model))
     plt.show()
 
     return model, error, pourcentage_loss_list, test_loss_list
