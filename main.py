@@ -11,6 +11,7 @@ import torch.nn as nn
 
 import preprocessing_data
 import data_processing
+import data_postprocessing
 
 import LSTM
 import CNN
@@ -44,7 +45,7 @@ if nom_model == 'LSTM':
     model = LSTM.LSTM_NN(longueur_serie=longueur_serie)
     print(model)
     error = nn.L1Loss()
-    learning_rate = 0.001
+    learning_rate = 0.01
     weight_decay = 0.0001
     lr_dim = 2
     num_epoch = 2
@@ -65,3 +66,11 @@ else:
 # %% Training and Testing
 
 model, error, pourcentage_loss_list, test_loss_list = data_processing.main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size)
+
+# %% Validation
+
+data_post = data_postprocessing.process_data(date_range=['2018-06-01','2018-06-30'], direction=0, longueur_serie=longueur_serie)
+data_loader_post = data_postprocessing.data_loader(data_post, longueur_serie)
+output = data_postprocessing.data_processing(data_loader_post, model)
+
+data_postprocessing.plot(data_post, output)
