@@ -90,4 +90,4 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
     plt.title("{}: Test Loss vs Pourcentage Epochs".format(nom_model))
     plt.show()
 
-    return model, error, pourcentage_loss_list, test_loss_list
+    return model, pourcentage_loss_list, test_loss_list
