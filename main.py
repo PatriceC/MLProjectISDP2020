@@ -10,7 +10,7 @@ import torch as torch
 import torch.nn as nn 
 
 import preprocessing_data
-import data_processing
+import model_training
 import data_postprocessing
 
 import LSTM
@@ -56,8 +56,8 @@ elif nom_model == 'CNN':
     error = nn.L1Loss()
     learning_rate = 0.01
     weight_decay = 0.0001
-    lr_dim = 2
-    num_epoch = 2
+    lr_dim = 10
+    num_epoch = 3
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 else:
@@ -65,7 +65,7 @@ else:
 
 # %% Training and Testing
 
-model, error, pourcentage_loss_list, test_loss_list = data_processing.main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size)
+model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size)
 
 # %% Validation
 

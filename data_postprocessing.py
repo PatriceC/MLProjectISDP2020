@@ -14,14 +14,14 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     """
         Retourne 3 séries de longueur_serie valeurs de Volume pour un jour, une position, et une direction
     """
-    row_J = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
-    row_J_moins_1 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')
+    row_J = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
+    row_J_moins_1 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')
 ) & (data['Direction'] == direction)]
-    row_J_moins_2 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(2, unit='d')
+    row_J_moins_2 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(2, unit='d')
 ) & (data['Direction'] == direction)]
-    row_J_moins_7 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')
+    row_J_moins_7 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')
 ) & (data['Direction'] == direction)]
-    row_J_moins_8 = data[(np.isclose(data['location_latitude'], latitude, rtol=1.e-4, atol=1.e-6)) & (np.isclose(data['location_longitude'], longitude, rtol=1.e-4, atol=1.e-6)) & (data['Date'] == Date_J - pd.to_timedelta(8, unit='d')
+    row_J_moins_8 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(8, unit='d')
 ) & (data['Direction'] == direction)]
 
     if (row_J.empty or row_J_moins_1.empty or row_J_moins_7.empty):
@@ -77,12 +77,15 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data = data.groupby(col)['Volume'].sum().reset_index()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
+
     #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
+
     data = data.dropna()
 
-    # On normalise (méthode min-max) les valeurs de latitude et longitude
-    data['location_latitude'] = (data['location_latitude'] - data['location_latitude'].min()) / (data['location_latitude'].max() - data['location_latitude'].min())
-    data['location_longitude'] = (data['location_longitude'] - data['location_longitude'].min()) / (data['location_longitude'].max() - data['location_longitude'].min())
+    # On va normaliser (méthode min-max) les valeurs de latitude et longitude
+    latitude_max, latitude_min = data['location_latitude'].max(), data['location_latitude'].min()
+    longitude_max, longitude_min = data['location_longitude'].max(), data['location_longitude'].min()
+
     # On garde les valeurs de mois entre 0 et 11 (plutôt que 1 et 12), ce qui sera plus pratique pour créer des one-hot vectors
     data['Month'] = data['Month'] - 1
 
@@ -93,6 +96,10 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
         direction = row['Direction']
 
         result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie, data=data)
+
+        # On normalise (méthode min-max) les valeurs de latitude et longitude
+        latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
+        longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
 
         if result is not None:
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
