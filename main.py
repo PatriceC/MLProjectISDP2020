@@ -28,9 +28,10 @@ if data_input != 'O':
 else:
     # Ou alors on récupère un dataset déjà créé
     data_train = np.genfromtxt('./data_train_' + str(longueur_serie) + '.txt')
-    data_test = np.genfromtxt('./data_test_' + str(longueur_serie) + '.txt')    
+    data_test = np.genfromtxt('./data_test_' + str(longueur_serie) + '.txt')
 
 n_train, n_test = data_train.shape[0], data_test.shape[0]
+#data_train, data_test = data_train[:int(0.3*n_train)], data_test[:int(0.3*n_test)]
 
 batch_size = 128
 
@@ -45,10 +46,10 @@ if nom_model == 'LSTM':
     model = LSTM.LSTM_NN(longueur_serie=longueur_serie)
     print(model)
     error = nn.L1Loss()
-    learning_rate = 0.01
+    learning_rate = 0.001
     weight_decay = 0.0001
     lr_dim = 2
-    num_epoch = 2
+    num_epoch = 1
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 elif nom_model == 'CNN':
     model = CNN.CNN(S=longueur_serie).double()
