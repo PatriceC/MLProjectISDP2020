@@ -18,7 +18,7 @@ import CNN
 
 # %% Data Preprocessing
 
-longueur_serie = 9
+longueur_serie = 12
 
 data_input = input("Avez-vous déjà les fichiers {} et {} ? [O/N]\n".format('data_train_' + str(longueur_serie) + '.txt', 'data_test_' + str(longueur_serie) + '.txt'))
 
@@ -57,7 +57,7 @@ elif nom_model == 'CNN':
     learning_rate = 0.01
     weight_decay = 0.0001
     lr_dim = 10
-    num_epoch = 3
+    num_epoch = 2
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 else:
@@ -69,8 +69,11 @@ model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, mo
 
 # %% Validation
 
-data_post = data_postprocessing.process_data(date_range=['2018-06-01','2018-06-30'], direction=0, longueur_serie=longueur_serie)
+data_post, data_post_date, volume_max, volume_min = data_postprocessing.process_data(date_range=['2018-07-01','2018-07-30'], direction=0, longueur_serie=longueur_serie)
 data_loader_post = data_postprocessing.data_loader(data_post, longueur_serie)
-output = data_postprocessing.data_processing(data_loader_post, model)
+output = data_postprocessing.data_pred(data_loader_post, model)
 
-data_postprocessing.plot(data_post, output)
+data_post[:,-1] = data_post[:,-1]*(volume_max - volume_min) + volume_min
+output = output*(volume_max - volume_min) + volume_min
+
+data_post_pd = data_postprocessing.plot(data_post, output.detach(), data_post_date)
