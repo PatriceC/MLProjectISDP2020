@@ -162,19 +162,8 @@ def data_loader(data_post, longueur_serie):
     return data_loader_post
 
 def data_pred(data_loader_post, model):
-    for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_post:
-
-        latitude = latitude.float()
-        longitude = longitude.float()
-        month = month.float()
-        day_week = day_week.float()
-        direction = direction.float()
-        serie_J = serie_J.float()
-        serie_J_moins_1 = serie_J_moins_1.float()
-        serie_J_moins_7 = serie_J_moins_7.float()
-        target = target.float()
-
-        return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
+    (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), _ = next(iter(data_loader_post))
+    return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
 
 def plot(data_post, output, data_post_date):
     data_post = data_post[:,[0,1,2,3,4,-1]]
