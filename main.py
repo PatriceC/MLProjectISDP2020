@@ -57,7 +57,7 @@ elif nom_model == 'CNN':
     learning_rate = 0.01
     weight_decay = 0.0001
     lr_dim = 10
-    num_epoch = 3
+    num_epoch = 2
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
 else:
@@ -71,6 +71,6 @@ model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, mo
 
 data_post = data_postprocessing.process_data(date_range=['2018-06-01','2018-06-30'], direction=0, longueur_serie=longueur_serie)
 data_loader_post = data_postprocessing.data_loader(data_post, longueur_serie)
-output = data_postprocessing.data_processing(data_loader_post, model)
+output = data_postprocessing.data_pred(data_loader_post, model)
 
 data_postprocessing.plot(data_post, output)

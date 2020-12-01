@@ -59,6 +59,10 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
 def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100], longitude=[-100,100], longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     data = pd.read_csv(file)
 
+    # On va normaliser (méthode min-max) les valeurs de latitude et longitude
+    latitude_max, latitude_min = data['location_latitude'].max(), data['location_latitude'].min()
+    longitude_max, longitude_min = data['location_longitude'].max(), data['location_longitude'].min()
+
     data = data.drop(columns=['location_name', 'Time Bin'])
     data['Direction'] = data['Direction'].astype('category').cat.codes
     data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
@@ -79,9 +83,6 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
 
     data = data.dropna()
 
-    # On va normaliser (méthode min-max) les valeurs de latitude et longitude
-    latitude_max, latitude_min = data['location_latitude'].max(), data['location_latitude'].min()
-    longitude_max, longitude_min = data['location_longitude'].max(), data['location_longitude'].min()
 
     # On garde les valeurs de mois entre 0 et 11 (plutôt que 1 et 12), ce qui sera plus pratique pour créer des one-hot vectors
     data['Month'] = data['Month'] - 1
@@ -155,7 +156,7 @@ def data_loader(data_post, longueur_serie):
     
     return data_loader_post
 
-def data_processing(data_loader_post, model):
+def data_pred(data_loader_post, model):
     for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_post:
 
         latitude = latitude.float().unsqueeze(1)
