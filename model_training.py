@@ -2,7 +2,7 @@
 """
 Created on Mon Nov 23 13:54:58 2020
 
-@author: Patrice CHANOL
+@author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
 
 import matplotlib.pyplot as plt
@@ -97,10 +97,10 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
                     test_loss_batch.append(loss_test)
 
                 test_loss = np.mean(test_loss_batch)
-                print("Pourcentage * Epoch: {}%, Epoch: {}".format(100*pourcentage, epoch+1))
+                print("Pourcentage * Epoch: {}%, Epoch: {}".format(int(round(100*pourcentage)), epoch+1))
                 print(test_loss)
                 print()
-                pourcentage_loss_list.append(100*pourcentage)
+                pourcentage_loss_list.append(int(round(100*pourcentage)))
                 test_loss_list.append(test_loss)
                 pourcentage += 0.1
 
