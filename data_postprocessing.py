@@ -15,14 +15,10 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
         Retourne 3 séries de longueur_serie valeurs de Volume pour un jour, une position, et une direction
     """
     row_J = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
-    row_J_moins_1 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')
-) & (data['Direction'] == direction)]
-    row_J_moins_2 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(2, unit='d')
-) & (data['Direction'] == direction)]
-    row_J_moins_7 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')
-) & (data['Direction'] == direction)]
-    row_J_moins_8 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(8, unit='d')
-) & (data['Direction'] == direction)]
+    row_J_moins_1 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')) & (data['Direction'] == direction)]
+    row_J_moins_2 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(2, unit='d')) & (data['Direction'] == direction)]
+    row_J_moins_7 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(7, unit='d')) & (data['Direction'] == direction)]
+    row_J_moins_8 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(8, unit='d')) & (data['Direction'] == direction)]
 
     if (row_J.empty or row_J_moins_1.empty or row_J_moins_7.empty):
         return(None)
@@ -30,29 +26,27 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     elif (row_J_moins_2.empty or row_J_moins_8.empty):
         valeurs_J, valeurs_J_moins_1, valeurs_J_moins_7 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:]
 
-        heure_min = longueur_serie - 1
-        nb_series = 24 - 2 * heure_min
+        nb_series = 24 - longueur_serie + 1
         target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series,longueur_serie-1)), np.zeros((nb_series,longueur_serie)), np.zeros((nb_series,longueur_serie))
 
         for h in range(nb_series):
-            target[h] = valeurs_J[heure_min + h + longueur_serie - 1]
-            serie_J[h] = valeurs_J[heure_min + h : heure_min + h + longueur_serie - 1]
-            serie_J_moins_1[h] = valeurs_J_moins_1[heure_min + h : heure_min + h + longueur_serie]
-            serie_J_moins_7[h] = valeurs_J_moins_7[heure_min + h : heure_min + h + longueur_serie]
+            target[h] = valeurs_J[h + longueur_serie - 1]
+            serie_J[h] = valeurs_J[h : h + longueur_serie - 1]
+            serie_J_moins_1[h] = valeurs_J_moins_1[h : h + longueur_serie]
+            serie_J_moins_7[h] = valeurs_J_moins_7[h : h + longueur_serie]
 
     else:
         valeurs_J, valeurs_J_moins_1, valeurs_J_moins_2, valeurs_J_moins_7, valeurs_J_moins_8 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_2.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:], row_J_moins_8.values.tolist()[0][8:]
-        V_J, V_J_1, V_J_7 = valeurs_J + valeurs_J_moins_1, valeurs_J_moins_1 + valeurs_J_moins_2, valeurs_J_moins_7 + valeurs_J_moins_8
+        V_J, V_J_1, V_J_7 = valeurs_J_moins_1 + valeurs_J,  valeurs_J_moins_2 + valeurs_J_moins_1, valeurs_J_moins_8 + valeurs_J_moins_7
 
-        heure_min = 24
-        nb_series = 24 - (longueur_serie - 1)
+        nb_series = 24
         target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series,longueur_serie-1)), np.zeros((nb_series,longueur_serie)), np.zeros((nb_series,longueur_serie))
 
         for h in range(nb_series):
-            target[h] = V_J[heure_min + h + longueur_serie - 1]
-            serie_J[h] = V_J[heure_min + h : heure_min + h + longueur_serie - 1]
-            serie_J_moins_1[h] = V_J_1[heure_min + h : heure_min + h + longueur_serie]
-            serie_J_moins_7[h] = V_J_7[heure_min + h : heure_min + h + longueur_serie]
+            target[h] = V_J[h + nb_series]
+            serie_J[h] = V_J[h + nb_series - longueur_serie + 1 : h + nb_series]
+            serie_J_moins_1[h] = V_J_1[h + nb_series - longueur_serie : h + nb_series]
+            serie_J_moins_7[h] = V_J_7[h + nb_series - longueur_serie : h + nb_series]
     
     return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
@@ -69,47 +63,55 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
 
     data = data.sort_values(['Year', 'Month', 'Day'])
 
-    data = data[(data['Date'] >= date_range[0]) & (data['Date'] <= date_range[1])]
-    data = data[(data['location_latitude'] >= latitude[0]) & (data['location_latitude'] <= latitude[1])]
-    data = data[(data['location_longitude'] >= longitude[0]) & (data['location_longitude'] <= longitude[1])]
+    data_pred = data[(data['Date'] >= date_range[0]) & (data['Date'] <= date_range[1])]
+    data_pred = data_pred[(data_pred['location_latitude'] >= latitude[0]) & (data_pred['location_latitude'] <= latitude[1])]
+    data_pred = data_pred[(data_pred['location_longitude'] >= longitude[0]) & (data_pred['location_longitude'] <= longitude[1])]
 
     if direction != None:
-            data = data[data['Direction'] == direction]
+            data_pred = data_pred[data_pred['Direction'] == direction]
 
     col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
+    volume_max, volume_min = data['Volume'].max(), data['Volume'].min()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
+    data_pred = data_pred.groupby(col)['Volume'].sum().reset_index()
+    data_pred = data_pred.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
 
     #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
 
     data = data.dropna()
+    data_pred = data_pred.dropna()
 
 
     # On garde les valeurs de mois entre 0 et 11 (plutôt que 1 et 12), ce qui sera plus pratique pour créer des one-hot vectors
     data['Month'] = data['Month'] - 1
+    data_pred['Month'] = data_pred['Month'] - 1
 
     data_post = []
-    for _, row in data.iterrows():
+    data_post_date = []
+    for _, row in data_pred.iterrows():
         latitude, longitude = row['location_latitude'], row['location_longitude']
         month, day_week, date = row['Month'], row['Day of Week'], row['Date']
         direction = row['Direction']
-
         result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie, data=data)
 
         # On normalise (méthode min-max) les valeurs de latitude et longitude
         latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
         longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
-
         if result is not None:
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-                data_post.append([latitude, longitude, month, day_week, direction] + s1.tolist() + s2.tolist() + s3.tolist() + [t])
+                s1_norm = list((s1.tolist() - volume_min)/(volume_max - volume_min))
+                s2_norm = list((s2.tolist() - volume_min)/(volume_max - volume_min))
+                s3_norm = list((s3.tolist() - volume_min)/(volume_max - volume_min))
+                t_norm = (t - volume_min)/(volume_max - volume_min)
+                data_post_date.append(date)
+                data_post.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
 
-
-    return np.array(data_post)
+    return np.array(data_post), np.array(data_post_date), volume_max, volume_min
 
 def data_loader(data_post, longueur_serie):
     """
@@ -174,7 +176,13 @@ def data_pred(data_loader_post, model):
 
         return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
 
-def plot(data_post, output):
-    plt.plot(data_post[:,-1])
-    plt.plot(output.detach())
+def plot(data_post, output, data_post_date):
+    data_post = data_post[:,[0,1,2,3,4,-1]]
+    data_post_pd = pd.DataFrame(data_post)
+    data_post_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
+    data_post_pd['date'] = data_post_date
+    data_post_pd['pred'] = output
+    data_post_pd['to_pred'].plot()
+    data_post_pd['pred'].plot()
     plt.show()
+    return data_post_pd

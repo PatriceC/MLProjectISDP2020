@@ -32,7 +32,8 @@ class CNN(nn.Module):
         self.fc3 = nn.Linear(in_features=32, out_features=1)
 
     def forward(self, x_latitude, x_longitude, x_month, x_day_week, x_direction, x_1, x_2, x_3):
-        out = self.layer_1(x_1.double())
+        out = x_1.double().unsqueeze(1)
+        out = self.layer_1(out)
         out = self.layer_2(out)
         out = out.view(out.size(0), -1)
         out = self.fc1(out)
