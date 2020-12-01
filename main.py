@@ -59,7 +59,6 @@ elif nom_model == 'CNN':
     lr_dim = 10
     num_epoch = 2
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-
 else:
     print("Erreur dans le choix du modèle")
 

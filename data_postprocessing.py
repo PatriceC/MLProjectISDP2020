@@ -104,9 +104,9 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-                s1_norm = list((s1.tolist() - volume_min)/(volume_max - volume_min))
-                s2_norm = list((s2.tolist() - volume_min)/(volume_max - volume_min))
-                s3_norm = list((s3.tolist() - volume_min)/(volume_max - volume_min))
+                s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
+                s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
+                s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
                 data_post_date.append(date)
                 data_post.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
@@ -162,19 +162,8 @@ def data_loader(data_post, longueur_serie):
     return data_loader_post
 
 def data_pred(data_loader_post, model):
-    for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_post:
-
-        latitude = latitude.float()
-        longitude = longitude.float()
-        month = month.float()
-        day_week = day_week.float()
-        direction = direction.float()
-        serie_J = serie_J.float()
-        serie_J_moins_1 = serie_J_moins_1.float()
-        serie_J_moins_7 = serie_J_moins_7.float()
-        target = target.float()
-
-        return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
+    (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), _ = next(iter(data_loader_post))
+    return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
 
 def plot(data_post, output, data_post_date):
     data_post = data_post[:,[0,1,2,3,4,-1]]

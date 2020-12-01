@@ -17,7 +17,7 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
 
         self.layer_1 = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3),
+            nn.Conv1d(in_channels=3, out_channels=32, kernel_size=3),
             nn.Tanh(),
             nn.MaxPool1d(kernel_size=2)
         )
@@ -27,15 +27,16 @@ class CNN(nn.Module):
             nn.AdaptiveAvgPool1d(S-1)
         )
 
-        self.fc1 = nn.Linear(in_features = 64*(S-1), out_features=128)
+        self.fc1 = nn.Linear(in_features = 64*(S-1) + 2 + 1 +1 + 12 + 7 + 5, out_features=128)
         self.fc2 = nn.Linear(in_features=128, out_features=32)
         self.fc3 = nn.Linear(in_features=32, out_features=1)
 
     def forward(self, x_latitude, x_longitude, x_month, x_day_week, x_direction, x_1, x_2, x_3):
-        out = x_1.double().unsqueeze(1)
+        out = torch.cat((x_1.double().unsqueeze(1), x_2[:,:-1].double().unsqueeze(1), x_3[:,:-1].double().unsqueeze(1)), dim=1)
         out = self.layer_1(out)
         out = self.layer_2(out)
         out = out.view(out.size(0), -1)
+        out = torch.cat((out, x_2[:,-1].double().unsqueeze(1), x_3[:,-1].double().unsqueeze(1), x_latitude.unsqueeze(1), x_longitude.unsqueeze(1), x_month, x_day_week, x_direction), dim=1)
         out = self.fc1(out)
         out = out.relu()
         out = nn.Dropout(0.25)(out)
@@ -51,6 +52,6 @@ class CNN(nn.Module):
 #     Local Max Pooling 1st layer 1st Serie input: (S-3) * 32, output: (So-3)/2 * 32 or (Se-4)/2 * 32
 #     Local Convulation 2nd layer 1st Serie input: (So-3)/2 * 32 or (Se-4)/2 * 32, output: (So-3)/2 * 64 or (Se-4)/2 * 64
 #     Local Adaptative Max Pooling 2nd layer 1st Serie input: (So-3)/2 * 64 or (Se-4)/2 * 64, output: (S-1) * 64
-#     First Linear layer : input: (S-1)*64, output: 128
+#     First Linear layer : input: (S-1)*64 + 2 + 1 +1 + 12 + 7 + 5, output: 128
 #     Second Linear layer : input: 128, output: 32
 #     Third Linear layer : input: 32, output: 1
