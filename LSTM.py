@@ -8,27 +8,36 @@ class LSTM_NN(nn.Module):
     def __init__(self, longueur_serie):
         super(LSTM_NN, self).__init__()
 
-        self.lstm_1 = nn.LSTM(input_size=longueur_serie, hidden_size=100, num_layers=1, batch_first=True, dropout=0.2)
-        self.lstm_2 = nn.LSTM(input_size=longueur_serie + 100, hidden_size=100, num_layers=1, batch_first=True, dropout=0.2)
-        self.lstm_3 = nn.LSTM(input_size=longueur_serie - 1 + 100, hidden_size=100, num_layers=1, batch_first=True, dropout=0.2)
+        self.lstm = nn.LSTM(input_size=3, hidden_size=100, num_layers=1, batch_first=True)
 
-        self.fc_1 = nn.Linear(in_features=100 + 2 + 12 + 7 + 5, out_features=32)
-        self.fc_2 = nn.Linear(in_features=32, out_features=8)
-        self.fc_3 = nn.Linear(in_features=8, out_features=1)
+        self.dropout = nn.Dropout(0.1)
+
+        self.lin = nn.Linear(in_features=100 + 1 + 1 + 1 + 12 + 7 + 5, out_features=32)
+        self.lin2 = nn.Linear(in_features=32, out_features=1)
         self.relu = nn.ReLU()
 
-    
     def forward(self, latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7):
 
-        out, _  = self.lstm_1(serie_J_moins_1)
-        out, _  = self.lstm_2(torch.cat((out,serie_J_moins_7),dim=2))
-        out, _  = self.lstm_3(torch.cat((out,serie_J),dim=2))
+        latitude = latitude.float().unsqueeze(1)
+        longitude = longitude.float().unsqueeze(1)
+        month = month.float()
+        day_week = day_week.float()
+        direction = direction.float()
+        serie_J = serie_J.float().unsqueeze(2)
+        serie_J_moins_1 = serie_J_moins_1.float().unsqueeze(2)
+        serie_J_moins_7 = serie_J_moins_7.float().unsqueeze(2)
+    
+        input = torch.cat((serie_J_moins_1[:,:-1,:], serie_J_moins_7[:,:-1,:], serie_J), dim=2)
 
-        out = torch.cat((out, latitude.unsqueeze(1), longitude.unsqueeze(1), month.float().unsqueeze(1), day_week.float().unsqueeze(1), direction.float().unsqueeze(1)), dim=2)
-        out = self.fc_1(out)
+        out, _ = self.lstm(input)
+
+        out = out[:,-1,:]
+
+        out = self.dropout(out)
+
+        input_2 = torch.cat((out, latitude, longitude, month, day_week, direction, serie_J_moins_7[:,-1,:]), dim=1)
+
+        out = self.lin(input_2)
         out = self.relu(out)
-        out = self.fc_2(out)
-        out = self.relu(out)
-        out = self.fc_3(out)
-        out = self.relu(out)
-        return(out)
+        out = self.lin2(out)
+        return(out.squeeze(1))

@@ -59,16 +59,6 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_train:
 
-            latitude = latitude
-            longitude = longitude
-            month = month
-            day_week = day_week
-            direction = direction
-            serie_J = serie_J
-            serie_J_moins_1 = serie_J_moins_1
-            serie_J_moins_7 = serie_J_moins_7
-            target = target
-
             output = model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7)
             loss = error(output, target)
             optimizer.zero_grad()
@@ -81,16 +71,6 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
                 test_loss_batch = []
 
                 for (latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t), target_t in data_loader_test:
-
-                    latitude_t = latitude_t
-                    longitude_t = longitude_t
-                    month = month
-                    day_week = day_week
-                    direction = direction
-                    serie_J_t = serie_J_t
-                    serie_J_moins_1_t = serie_J_moins_1_t
-                    serie_J_moins_7_t = serie_J_moins_7_t
-                    target_t = target_t
 
                     output_t = model.forward(latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t)
                     loss_test = error(output_t, target_t).data.item()
