@@ -2,7 +2,7 @@
 """
 Created on Mon Nov 30 16:38:39 2020
 
-@author: Patrice CHANOL
+@author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
 
 import pandas as pd
@@ -66,7 +66,7 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data = data.drop(columns=['location_name', 'Time Bin'])
     data['Direction'] = data['Direction'].astype('category').cat.codes
     data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
-    
+
     data = data.sort_values(['Year', 'Month', 'Day'])
 
     data = data[(data['Date'] >= date_range[0]) & (data['Date'] <= date_range[1])]
@@ -80,6 +80,9 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
+
+
+    #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
 
     data = data.dropna()
 

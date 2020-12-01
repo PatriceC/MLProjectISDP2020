@@ -63,6 +63,9 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     data = data.groupby(col)['Volume'].sum().reset_index()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
+
+    #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
+
     data = data.dropna()
 
     # On va normaliser (méthode min-max) les valeurs de latitude et longitude
