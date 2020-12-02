@@ -18,7 +18,7 @@ import CNN
 
 # %% Data Preprocessing
 
-longueur_serie = 12
+longueur_serie = 24
 
 data_input = input("Avez-vous déjà les fichiers {} et {} ? [O/N]\n".format('data_train_' + str(longueur_serie) + '.txt', 'data_test_' + str(longueur_serie) + '.txt'))
 
@@ -55,12 +55,11 @@ elif nom_model == 'CNN':
     model = CNN.CNN(S=longueur_serie).double()
     print(model)
     error = nn.L1Loss()
-    learning_rate = 0.01
+    learning_rate = 0.001
     weight_decay = 0.0001
-    lr_dim = 10
-    num_epoch = 2
+    lr_dim = 3
+    num_epoch = 3
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-
 else:
     print("Erreur dans le choix du modèle")
 

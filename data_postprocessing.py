@@ -104,9 +104,9 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-                s1_norm = list((s1.tolist() - volume_min)/(volume_max - volume_min))
-                s2_norm = list((s2.tolist() - volume_min)/(volume_max - volume_min))
-                s3_norm = list((s3.tolist() - volume_min)/(volume_max - volume_min))
+                s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
+                s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
+                s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
                 data_post_date.append(date)
                 data_post.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
@@ -171,7 +171,12 @@ def plot(data_post, output, data_post_date):
     data_post_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
     data_post_pd['date'] = data_post_date
     data_post_pd['pred'] = output
-    data_post_pd['to_pred'].plot()
-    data_post_pd['pred'].plot()
-    plt.show()
+    localisation = data_post_pd[['latitude','longitude']].drop_duplicates().to_numpy()
+    for loc in range(len(localisation)):
+        data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['to_pred'].plot(label='Data')
+        data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['pred'].plot(label='Pred')
+        plt.ylabel("Volume")
+        plt.title("Data vs Pred")
+        plt.legend()
+        plt.show()
     return data_post_pd

@@ -85,9 +85,9 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-                s1_norm = list((s1.tolist() - volume_min)/(volume_max - volume_min))
-                s2_norm = list((s2.tolist() - volume_min)/(volume_max - volume_min))
-                s3_norm = list((s3.tolist() - volume_min)/(volume_max - volume_min))
+                s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
+                s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
+                s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
                 if random.random() < 0.9:
                     data_train.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
