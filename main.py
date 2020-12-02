@@ -12,6 +12,7 @@ import torch.nn as nn
 import preprocessing_data
 import model_training
 import data_postprocessing
+import data_forecast
 
 import LSTM
 import CNN
@@ -69,11 +70,20 @@ model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, mo
 
 # %% Validation
 
-data_post, data_post_date, volume_max, volume_min = data_postprocessing.process_data(date_range=['2018-07-01','2018-07-30'], direction=0, longueur_serie=longueur_serie)
+(data_post, data_post_date, data_post_hour, volume_max, volume_min) = data_postprocessing.process_data(date_range=['2018-07-09','2018-08-10'], direction=0, longueur_serie=longueur_serie)
 data_loader_post = data_postprocessing.data_loader(data_post, longueur_serie)
 output = data_postprocessing.data_pred(data_loader_post, model)
 
 data_post[:,-1] = data_post[:,-1]*(volume_max - volume_min) + volume_min
 output = output*(volume_max - volume_min) + volume_min
 
-data_post_pd = data_postprocessing.plot(data_post, output.detach(), data_post_date)
+data_post_pd = data_postprocessing.plot(data_post, output.detach(), data_post_date, data_post_hour)
+
+# %% Forecast
+
+(data_for, data_for_date, data_for_hour, volume_max, volume_min, forecast) = data_forecast.forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitude=30.268652000000003, longitude=-97.759929, longueur_serie=longueur_serie)
+
+data_for[:,-1] = data_for[:,-1]*(volume_max - volume_min) + volume_min
+forecast = forecast*(volume_max - volume_min) + volume_min
+
+data_post_pd = data_forecast.plot(data_for, forecast, data_for_date, data_for_hour)

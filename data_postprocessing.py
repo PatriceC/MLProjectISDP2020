@@ -61,7 +61,7 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data['Direction'] = data['Direction'].astype('category').cat.codes
     data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
 
-    data = data.sort_values(['Year', 'Month', 'Day'])
+    data = data.sort_values(['Year', 'Month', 'Day', 'Hour'])
 
     data_pred = data[(data['Date'] >= date_range[0]) & (data['Date'] <= date_range[1])]
     data_pred = data_pred[(data_pred['location_latitude'] >= latitude[0]) & (data_pred['location_latitude'] <= latitude[1])]
@@ -78,9 +78,6 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data_pred = data_pred.groupby(col)['Volume'].sum().reset_index()
     data_pred = data_pred.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
-
-    #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
-
     data = data.dropna()
     data_pred = data_pred.dropna()
 
@@ -91,6 +88,7 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
 
     data_post = []
     data_post_date = []
+    data_post_hour = []
     for _, row in data_pred.iterrows():
         latitude, longitude = row['location_latitude'], row['location_longitude']
         month, day_week, date = row['Month'], row['Day of Week'], row['Date']
@@ -102,6 +100,7 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
         longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
         if result is not None:
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
+            data_post_hour += [i for i in range(len(target))]
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
                 s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
@@ -111,7 +110,7 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
                 data_post_date.append(date)
                 data_post.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
 
-    return np.array(data_post), np.array(data_post_date), volume_max, volume_min
+    return (np.array(data_post), np.array(data_post_date), np.array(data_post_hour), volume_max, volume_min)
 
 def data_loader(data_post, longueur_serie):
     """
@@ -165,14 +164,17 @@ def data_pred(data_loader_post, model):
     (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), _ = next(iter(data_loader_post))
     return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
 
-def plot(data_post, output, data_post_date):
+def plot(data_post, output, data_post_date, data_post_hour):
     data_post = data_post[:,[0,1,2,3,4,-1]]
     data_post_pd = pd.DataFrame(data_post)
     data_post_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
-    data_post_pd['date'] = data_post_date
+    data_post_datetime = [data_post_date[i] + pd.to_timedelta(data_post_hour[i], unit='h') for i in range(len(data_post_date))]
+    data_post_pd['Datetime'] = data_post_datetime
+    data_post_pd.index = data_post_pd['Datetime']
     data_post_pd['pred'] = output
     localisation = data_post_pd[['latitude','longitude']].drop_duplicates().to_numpy()
     for loc in range(len(localisation)):
+        plt.figure(loc)
         data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['to_pred'].plot(label='Data')
         data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['pred'].plot(label='Pred')
         plt.ylabel("Volume")
