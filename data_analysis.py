@@ -28,7 +28,7 @@ data_pd.index = data_pd['Datetime']
 data_pd_0 = data_pd[data_pd['Direction'] == 0].sort_values(['Year', 'Month', 'Day'])
 
 data_pd_0.loc['2018-07','Volume'].plot()
-data_pd_0.loc['2018-07-19','Volume'].plot()
+data_pd_0.loc['2018-08','Volume'].plot()
 plt.show()
-data_pd_0.loc['2018-07-19','Volume'].plot()
+data_pd_0.loc['2018-07-25','Volume'].plot()
 plt.show()
