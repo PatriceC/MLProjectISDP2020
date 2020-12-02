@@ -171,7 +171,12 @@ def plot(data_post, output, data_post_date):
     data_post_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
     data_post_pd['date'] = data_post_date
     data_post_pd['pred'] = output
-    data_post_pd['to_pred'].plot()
-    data_post_pd['pred'].plot()
-    plt.show()
+    localisation = data_post_pd[['latitude','longitude']].drop_duplicates().to_numpy()
+    for loc in range(len(localisation)):
+        data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['to_pred'].plot(label='Data')
+        data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['pred'].plot(label='Pred')
+        plt.ylabel("Volume")
+        plt.title("Data vs Pred")
+        plt.legend()
+        plt.show()
     return data_post_pd
