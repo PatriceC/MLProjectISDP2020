@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 27 19:01:58 2020
+
+@author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
+"""
+
 import pandas as pd
 import numpy as np
 
@@ -65,8 +72,8 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     
     return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
-def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
-   '''
+def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
+    """
     Génération du Dataset désiré 
 
     Parameters
@@ -84,8 +91,7 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     file : TYPE, optional
         DESCRIPTION. The default is './Radar_Traffic_Counts.csv'.
 
-    '''
-
+    """
     data = pd.read_csv(file)
 
     # On va normaliser (méthode min-max) les valeurs de latitude et longitude
@@ -118,7 +124,7 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
         direction = row['Direction']
         # On génère les séries
         result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie, data=data)
-
+    
         # On normalise (méthode min-max) les valeurs de latitude et longitude
         latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
         longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
@@ -144,7 +150,6 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     np.savetxt('./data_test_' + str(longueur_serie) + '.txt', np.array(data_test))
 
     return(np.array(data_train), np.array(data_test))
-
 
 def data_loader(data_train, data_test, longueur_serie, batch_size = 128):
     """

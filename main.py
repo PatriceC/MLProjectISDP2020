@@ -19,6 +19,7 @@ import CNN
 
 # %% Data Preprocessing
 
+# longueur_serie maximum : 24
 longueur_serie = 24
 
 data_input = input("Avez-vous déjà les fichiers {} et {} ? [O/N]\n".format('data_train_' + str(longueur_serie) + '.txt', 'data_test_' + str(longueur_serie) + '.txt'))
@@ -70,6 +71,8 @@ model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, mo
 
 # %% Validation
 
+# On va afficher les prédictions et les réalisations sur une date fixée
+
 (data_post, data_post_date, data_post_hour, volume_max, volume_min) = data_postprocessing.process_data(date_range=['2018-07-09','2018-08-10'], direction=0, longueur_serie=longueur_serie)
 data_loader_post = data_postprocessing.data_loader(data_post, longueur_serie)
 output = data_postprocessing.data_pred(data_loader_post, model)
@@ -80,6 +83,8 @@ output = output*(volume_max - volume_min) + volume_min
 data_post_pd = data_postprocessing.plot(data_post, output.detach(), data_post_date, data_post_hour)
 
 # %% Forecast
+
+# On va afficher un forecast des données et les réalisations à partir d'une date fixée
 
 (data_for, data_for_date, data_for_hour, volume_max, volume_min, forecast) = data_forecast.forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitude=30.268652000000003, longitude=-97.759929, longueur_serie=longueur_serie)
 

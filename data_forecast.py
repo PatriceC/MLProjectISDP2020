@@ -198,13 +198,11 @@ def plot(data_for, output, data_for_date, data_for_hour):
     data_for_pd['Datetime'] = data_for_datetime
     data_for_pd.index = data_for_pd['Datetime']
     data_for_pd['pred'] = output
-    localisation = data_for_pd[['latitude','longitude']].drop_duplicates().to_numpy()
-    for loc in range(len(localisation)):
-        plt.figure(loc)
-        data_for_pd[(data_for_pd['latitude'] == localisation[loc, 0]) & (data_for_pd['longitude'] == localisation[loc, 1])]['to_pred'].plot(label='Data')
-        data_for_pd[(data_for_pd['latitude'] == localisation[loc, 0]) & (data_for_pd['longitude'] == localisation[loc, 1])]['pred'].plot(label='Pred')
-        plt.ylabel("Volume")
-        plt.title("Data vs Pred")
-        plt.legend()
-        plt.show()
+    plt.figure(0)
+    data_for_pd['to_pred'].plot(label='Data')
+    data_for_pd['pred'].plot(label='Pred')
+    plt.ylabel("Volume")
+    plt.title("Data vs Pred")
+    plt.legend()
+    plt.show()
     return data_for_pd
