@@ -159,15 +159,18 @@ def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitud
                 data_for.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
                 
                 # Si on a déjà prédit la journée, on l'utilise
-                if date - pd.to_timedelta(1, unit='d') in forecast_date and len(forecast_date) > forecast_date.index(date - pd.to_timedelta(1, unit='d')) + longueur_serie - 1:
+                if date - pd.to_timedelta(1, unit='d') in forecast_date:
                     i = forecast_date.index(date - pd.to_timedelta(1, unit='d'))
-                    s1_norm = forecast[i:i + longueur_serie - 1]
-                if date - pd.to_timedelta(2, unit='d') in forecast_date and len(forecast_date) > forecast_date.index(date - pd.to_timedelta(2, unit='d')) + longueur_serie:
+                    l = forecast_date.count(forecast_date[i])
+                    s1_norm = forecast[i:i + l - 1]
+                if date - pd.to_timedelta(2, unit='d') in forecast_date:
                     i = forecast_date.index(date - pd.to_timedelta(2, unit='d'))
-                    s2_norm = forecast[i:i + longueur_serie]
-                if date - pd.to_timedelta(8, unit='d') in forecast_date and len(forecast_date) > forecast_date.index(date - pd.to_timedelta(8, unit='d')) + longueur_serie:
+                    l = forecast_date.count(forecast_date[i])
+                    s2_norm = forecast[i:i + l]
+                if date - pd.to_timedelta(8, unit='d') in forecast_date:
                     i = forecast_date.index(date - pd.to_timedelta(8, unit='d'))
-                    s3_norm = forecast[i:i + longueur_serie]
+                    l = forecast_date.count(forecast_date[i])
+                    s3_norm = forecast[i:i + l]
                 # On prédit
                 output = model.forward(torch.tensor(latitude).unsqueeze(0), torch.tensor(longitude).unsqueeze(0), torch.eye(12)[int(round(month))].unsqueeze(0), torch.eye(7)[int(round(day_week))].unsqueeze(0), torch.eye(5)[int(round(direction))].unsqueeze(0), torch.tensor(s1_norm).unsqueeze(0), torch.tensor(s2_norm).unsqueeze(0), torch.tensor(s3_norm).unsqueeze(0))
                 forecast.append(output.detach())

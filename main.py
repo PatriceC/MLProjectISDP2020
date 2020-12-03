@@ -9,7 +9,7 @@ import numpy as np
 import torch as torch
 import torch.nn as nn 
 
-import preprocessing_data
+import data_preprocessing
 import model_training
 import data_postprocessing
 import data_forecast
@@ -26,7 +26,7 @@ data_input = input("Avez-vous déjà les fichiers {} et {} ? [O/N]\n".format('da
 
 if data_input != 'O':
     ## On crée un dataset train/test pour l'apprentissage de notre modèle
-    data_train, data_test = preprocessing_data.process_data(longueur_serie=longueur_serie)
+    data_train, data_test = data_preprocessing.process_data(longueur_serie=longueur_serie)
 else:
     # Ou alors on récupère un dataset déjà créé
     data_train = np.genfromtxt('./data_train_' + str(longueur_serie) + '.txt')
@@ -37,7 +37,7 @@ n_train, n_test = data_train.shape[0], data_test.shape[0]
 
 batch_size = 128
 
-data_loader_train, data_loader_test = preprocessing_data.data_loader(data_train, data_test, longueur_serie, batch_size = 128)
+data_loader_train, data_loader_test = data_preprocessing.data_loader(data_train, data_test, longueur_serie, batch_size = 128)
 
 # %% Définition du model utilisé
 
