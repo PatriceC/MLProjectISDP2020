@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Nov 30 16:38:39 2020
+Created on Wed Dec  2 11:46:52 2020
 
 @author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
@@ -71,22 +71,24 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     
     return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
-def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100], longitude=[-100,100], longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
+def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitude=30.268652000000003, longitude=-97.759929, longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
     '''
-    Génération du Dataset désiré de post
+    Forecast des données à partir du premier élément de date_range jusqu'au dernier'
 
     Parameters
     ----------
+    model : TYPE
+        DESCRIPTION. Model utiliser pour Forecast
     date_range : TYPE, optional
-        DESCRIPTION. The default is ['2017','2020'].
+        DESCRIPTION. The default is ['2018-07-09','2018-08-10'].
     direction : TYPE, optional
-        DESCRIPTION. The default is None.
+        DESCRIPTION. The default is 0.
     latitude : TYPE, optional
-        DESCRIPTION. The default is [-100,100].
+        DESCRIPTION. The default is 30.268652000000003.
     longitude : TYPE, optional
-        DESCRIPTION. The default is [-100,100].
+        DESCRIPTION. The default is -97.759929.
     longueur_serie : TYPE, optional
-        DESCRIPTION. The default is 6.
+        DESCRIPTION. The default is 24.
     file : TYPE, optional
         DESCRIPTION. The default is './Radar_Traffic_Counts.csv'.
 
@@ -102,12 +104,11 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data = data.drop(columns=['location_name', 'Time Bin'])
     data['Direction'] = data['Direction'].astype('category').cat.codes
     data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
-    data = data.sort_values(['Year', 'Month', 'Day', 'Hour'])
+    data = data.sort_values(['Date'])
     data_pred = data[(data['Date'] >= date_range[0]) & (data['Date'] <= date_range[1])]
-    data_pred = data_pred[(data_pred['location_latitude'] >= latitude[0]) & (data_pred['location_latitude'] <= latitude[1])]
-    data_pred = data_pred[(data_pred['location_longitude'] >= longitude[0]) & (data_pred['location_longitude'] <= longitude[1])]
-    if direction != None:
-            data_pred = data_pred[data_pred['Direction'] == direction]
+    data_pred = data_pred[data_pred['location_latitude'] == latitude]
+    data_pred = data_pred[data_pred['location_longitude'] == longitude]
+    data_pred = data_pred[data_pred['Direction'] == direction]
     col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
@@ -123,9 +124,11 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data['Month'] = data['Month'] - 1
     data_pred['Month'] = data_pred['Month'] - 1
 
-    data_post = []
-    data_post_date = []
-    data_post_hour = []
+    data_for = []
+    data_for_date = []
+    data_for_hour = []
+    forecast = []
+    forecast_date = []
     # Pour chaque jour
     for _, row in data_pred.iterrows():
         # On récuprère les informations de cette donnée
@@ -138,76 +141,44 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
         # On normalise (méthode min-max) les valeurs de latitude et longitude
         latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
         longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
+
         if result is not None:
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
             # On récupère les heures pour plot
-            data_post_hour += [i for i in range(len(target))]
-            for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
+            data_for_hour += [(i + longueur_serie - 1)%24 for i in range(len(target))]
+            for k in range(len(target)):
+                t, s1, s2, s3 = target[k], serie_J[k], serie_J_moins_1[k], serie_J_moins_7[k]
                 # On normalise les valeurs
                 s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
                 s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
                 s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
-                # On récupère les date et les vraies données
-                data_post_date.append(date)
-                data_post.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
+                
+                # On récupère les date et les vraies données pour plot
+                data_for_date.append(date)
+                data_for.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
+                
+                # Si on a déjà prédit la journée, on l'utilise
+                if date - pd.to_timedelta(1, unit='d') in forecast_date:
+                    i = forecast_date.index(date - pd.to_timedelta(1, unit='d'))
+                    l = forecast_date.count(forecast_date[i])
+                    s1_norm = forecast[i:i + l - 1]
+                if date - pd.to_timedelta(2, unit='d') in forecast_date:
+                    i = forecast_date.index(date - pd.to_timedelta(2, unit='d'))
+                    l = forecast_date.count(forecast_date[i])
+                    s2_norm = forecast[i:i + l]
+                if date - pd.to_timedelta(8, unit='d') in forecast_date:
+                    i = forecast_date.index(date - pd.to_timedelta(8, unit='d'))
+                    l = forecast_date.count(forecast_date[i])
+                    s3_norm = forecast[i:i + l]
+                # On prédit
+                output = model.forward(torch.tensor(latitude).unsqueeze(0), torch.tensor(longitude).unsqueeze(0), torch.eye(12)[int(round(month))].unsqueeze(0), torch.eye(7)[int(round(day_week))].unsqueeze(0), torch.eye(5)[int(round(direction))].unsqueeze(0), torch.tensor(s1_norm).unsqueeze(0), torch.tensor(s2_norm).unsqueeze(0), torch.tensor(s3_norm).unsqueeze(0))
+                forecast.append(output.detach())
+                forecast_date.append(date)
 
-    return (np.array(data_post), np.array(data_post_date), np.array(data_post_hour), volume_max, volume_min)
+    return (np.array(data_for), np.array(data_for_date), np.array(data_for_hour), volume_max, volume_min, np.array(forecast))
 
-def data_loader(data_post, longueur_serie):
-    """
-    On construit nos DataLoaders de post que nous utiliserons
-    pour itérer sur les données pour l'apprentissage de modèles.
-
-    Parameters
-    ----------
-    data_post : TYPE array
-        DESCRIPTION. Matrix of post data
-    data_test : TYPE array
-        DESCRIPTION. Matrix of test data
-    longueur_serie : TYPE int
-        DESCRIPTION. Length of series
-    batch_size : TYPE int, optional
-        DESCRIPTION. The default is 128.
-
-    Returns
-    -------
-    data_loader_post : TYPE DataLoader
-        DESCRIPTION. Post DataLoader
-
-    """
-
-    n_post = data_post.shape[0]
-
-    latitude_post = data_post[:,0]
-    longitude_post = data_post[:,1]
-    
-    month_post = np.zeros(((n_post, 12)))
-    day_week_post = np.zeros(((n_post, 7)))
-    direction_post = np.zeros(((n_post, 5)))
-    
-    # On crée les one-hot vectors pour les données post de mois, jour de la semaine, direction
-    for index, elements in enumerate(data_post):
-        month_post[index] = np.eye(12)[int(round(elements[2]))] # On utilise int(round(...)) à cause des erreurs d'arrondis parfois avec les float
-        day_week_post[index] = np.eye(7)[int(round(elements[3]))]
-        direction_post[index] = np.eye(5)[int(round(elements[4]))]
-    
-    serie_J_post = data_post[:,-3*longueur_serie:-1-2*longueur_serie]
-    serie_J_moins_1_post = data_post[:,-1-2*longueur_serie:-1-longueur_serie]
-    serie_J_moins_7_post = data_post[:,-1-longueur_serie:-1]
-    target_post = data_post[:,-1]
-    
-    data_loader_post = torch.utils.data.DataLoader(list(zip(zip(latitude_post, longitude_post, month_post, day_week_post, direction_post, serie_J_post, serie_J_moins_1_post, serie_J_moins_7_post), target_post)), batch_size=n_post)
-
-    
-    return data_loader_post
-
-def data_pred(data_loader_post, model):
-    # Prediction
-    (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), _ = next(iter(data_loader_post))
-    return model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7).view(-1)
-
-def plot(data_post, output, data_post_date, data_post_hour):
+def plot(data_for, output, data_for_date, data_for_hour):
     '''
     Plot et renvoie du DataFrame avec les données prédites et vraies
 
@@ -223,20 +194,18 @@ def plot(data_post, output, data_post_date, data_post_hour):
         DESCRIPTION.
 
     '''
-    data_post = data_post[:,[0,1,2,3,4,-1]]
-    data_post_pd = pd.DataFrame(data_post)
-    data_post_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
-    data_post_datetime = [data_post_date[i] + pd.to_timedelta(data_post_hour[i], unit='h') for i in range(len(data_post_date))]
-    data_post_pd['Datetime'] = data_post_datetime
-    data_post_pd.index = data_post_pd['Datetime']
-    data_post_pd['pred'] = output
-    localisation = data_post_pd[['latitude','longitude']].drop_duplicates().to_numpy()
-    for loc in range(len(localisation)):
-        plt.figure(loc+1)
-        data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['to_pred'].plot(label='Data')
-        data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['pred'].plot(label='Pred')
-        plt.ylabel("Volume")
-        plt.title("Data vs Pred")
-        plt.legend()
-        plt.show()
-    return data_post_pd
+    data_for = data_for[:,[0,1,2,3,4,-1]]
+    data_for_pd = pd.DataFrame(data_for)
+    data_for_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
+    data_for_datetime = [data_for_date[i] + pd.to_timedelta(data_for_hour[i], unit='h') for i in range(len(data_for_date))]
+    data_for_pd['Datetime'] = data_for_datetime
+    data_for_pd.index = data_for_pd['Datetime']
+    data_for_pd['pred'] = output
+    plt.figure(0)
+    data_for_pd['to_pred'].plot(label='Data')
+    data_for_pd['pred'].plot(label='Pred')
+    plt.ylabel("Volume")
+    plt.title("Data vs Pred")
+    plt.legend()
+    plt.show()
+    return data_for_pd
