@@ -145,11 +145,13 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
     # Mélange des données
     random.shuffle(data_train)
     random.shuffle(data_test)
+    data_train = torch.tensor(data_train)
+    data_test = torch.tensor(data_test)
     # Enregistrement des données
-    np.savetxt('./data_train_' + str(longueur_serie) + '.txt', np.array(data_train))
-    np.savetxt('./data_test_' + str(longueur_serie) + '.txt', np.array(data_test))
+    torch.save(data_train, 'data_train_' + str(longueur_serie) + '.txt')
+    torch.save(data_test, 'data_test_' + str(longueur_serie) + '.txt')
 
-    return(np.array(data_train), np.array(data_test))
+    return(data_train, data_test)
 
 def data_loader(data_train, data_test, longueur_serie, batch_size = 128):
     """

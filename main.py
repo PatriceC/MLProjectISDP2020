@@ -29,8 +29,8 @@ if data_input != 'O':
     data_train, data_test = data_preprocessing.process_data(longueur_serie=longueur_serie)
 else:
     # Ou alors on récupère un dataset déjà créé
-    data_train = np.genfromtxt('./data_train_' + str(longueur_serie) + '.txt')
-    data_test = np.genfromtxt('./data_test_' + str(longueur_serie) + '.txt')
+    data_train = torch.load('./data_train_' + str(longueur_serie) + '.txt')
+    data_test = torch.load('./data_test_' + str(longueur_serie) + '.txt')
 
 n_train, n_test = data_train.shape[0], data_test.shape[0]
 #data_train, data_test = data_train[:int(0.3*n_train)], data_test[:int(0.3*n_test)]
