@@ -56,7 +56,7 @@ Ensuite, on aura une couche fully connected avec comme paramètres la sortie de 
 
 
 
-Le modèle est très performant pour prédire à 1 étape, cependant il réagit mal à la prédiction sur plusieurs étapes. En effet, il va rester plus ou moins fidèle aux variations sur les 7 premiers jours (ce qui est normal car en entrée on aura besoin des données des 7 derniers jours) mais deviendra très rapidement linéaire.
+Le modèle est très performant pour prédire à 1 étape, cependant il réagit mal à la prédiction sur plusieurs étapes. En effet, il va rester plus ou moins fidèle aux variations sur les 7 premiers jours (ce qui est normal car en entrée on aura besoin des données des 7 derniers jours) mais deviendra très rapidement linéaire. D'autres modèles de CNN plus simple ou plus complexe, vont globalement aboutir au même résultat mais les plus simples réaliseront la prédiction à plusieurs étapes avec plus de difficulté.
 
 
 

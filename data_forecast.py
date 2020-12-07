@@ -201,7 +201,7 @@ def plot(data_for, output, data_for_date, data_for_hour):
     data_for_pd['Datetime'] = data_for_datetime
     data_for_pd.index = data_for_pd['Datetime']
     data_for_pd['pred'] = output
-    plt.figure(0)
+    plt.figure(1)
     data_for_pd['to_pred'].plot(label='Data')
     data_for_pd['pred'].plot(label='Pred')
     plt.ylabel("Volume")

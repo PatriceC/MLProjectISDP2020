@@ -47,27 +47,27 @@ nom_model = input("Choisir le modèle à traiter parmis : {}\n".format(model_dis
 if nom_model == 'LSTM':
     model = LSTM.LSTM_NN(longueur_serie=longueur_serie)
     print(model)
-    error = nn.L1Loss()
+    error = nn.MSELoss()
     learning_rate = 0.001
     weight_decay = 0.0001
-    lr_dim = 2
     num_epoch = 1
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 elif nom_model == 'CNN':
     model = CNN.CNN(S=longueur_serie).double()
     print(model)
-    error = nn.L1Loss()
+    error = nn.MSELoss()
     learning_rate = 0.001
     weight_decay = 0.0001
-    lr_dim = 3
     num_epoch = 3
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 else:
     print("Erreur dans le choix du modèle")
 
 # %% Training and Testing
 
-model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size)
+model, pourcentage_loss_list, test_loss_list = model_training.main(nom_model, model, error, data_loader_train, data_loader_test, n_train, optimizer, scheduler, num_epoch, batch_size)
 
 # %% Validation
 

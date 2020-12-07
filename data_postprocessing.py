@@ -232,7 +232,7 @@ def plot(data_post, output, data_post_date, data_post_hour):
     data_post_pd['pred'] = output
     localisation = data_post_pd[['latitude','longitude']].drop_duplicates().to_numpy()
     for loc in range(len(localisation)):
-        plt.figure(loc+1)
+        plt.figure(loc + 2)
         data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['to_pred'].plot(label='Data')
         data_post_pd[(data_post_pd['latitude'] == localisation[loc, 0]) & (data_post_pd['longitude'] == localisation[loc, 1])]['pred'].plot(label='Pred')
         plt.ylabel("Volume")
