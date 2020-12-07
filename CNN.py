@@ -8,7 +8,6 @@ Created on Sat Nov 28 23:02:46 2020
 import torch
 import torch.nn as nn
 
-
 # %% Model
 
 class CNN(nn.Module):
@@ -48,7 +47,6 @@ class CNN(nn.Module):
   
 # Our input timeserie is changing in a following way:
 
-
 #     1st Convolution layer : (S-1) * 3, output: (S-3) * 24
 #     1st Max Pooling layer : (S-3) * 24, output: (S-3)//2 * 24
 #     2nd Convolution layer : (S-1)//2 * 24, output: (S-3) * 48
@@ -58,7 +56,51 @@ class CNN(nn.Module):
 #     Second Linear layer : input :128, output: 32
 #     Third Linear layer : input : 32, output: 1
 
-#%% Previous models
+# %% Previous Model
+
+class CNN_classical(nn.Module):
+
+    def __init__(self, S):
+        super(CNN_classical, self).__init__()
+
+        self.layer1 = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=24, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2)
+        )
+        self.layer2 = nn.Sequential(
+            nn.Conv1d(in_channels=24, out_channels=48, kernel_size=3, padding=1),
+            nn.BatchNorm1d(48),
+            nn.ReLU(),
+            nn.AdaptiveMaxPool1d(S-1)
+        )
+        self.fc1 = nn.Linear(in_features = 48*(S-1), out_features=128)
+        self.fc2 = nn.Linear(in_features=128, out_features=32)
+        self.fc3 = nn.Linear(in_features=32, out_features=1)
+
+    def forward(self, x_latitude, x_longitude, x_month, x_day_week, x_direction, x_1, x_2, x_3):
+        out = self.layer1(x_1.double().unsqueeze(1))
+        out = self.layer2(out)
+        out = out.view(out.size(0), -1)
+        out = self.fc1(out)
+        out = out.relu()
+        out = nn.Dropout(0.25)(out)
+        out = self.fc2(out)
+        out = out.relu()
+        out = self.fc3(out)
+
+        return out.view(-1)
+  
+# Our input timeserie is changing in a following way:
+
+#     1st Convolution layer : (S-1) * 1, output: (S-3) * 24
+#     1st Max Pooling layer : (S-3) * 24, output: (S-3)//2 * 24
+#     2nd Convolution layer : (S-1)//2 * 24, output: (S-3) * 48
+#     2nd Adaptive Max Pooling layer : (S-3)//2 * 48, output: (S-1) * 48
+
+#     First Linear layer : input : 48*(S-1), output: 128
+#     Second Linear layer : input :128, output: 32
+#     Third Linear layer : input : 32, output: 1
 
 class CNN_3conv(nn.Module):
 

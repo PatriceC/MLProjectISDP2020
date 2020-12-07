@@ -102,8 +102,8 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
     data = data.drop(columns=['location_name', 'Time Bin'])
     data['Direction'] = data['Direction'].astype('category').cat.codes
     data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
-    data['location_latitude'] = data['location_latitude'] * (10**14)
-    data['location_longitude'] = data['location_longitude'] * (10**14)
+    data['location_latitude'] = data['location_latitude']
+    data['location_longitude'] = data['location_longitude']
     col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
@@ -125,10 +125,10 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
         # On génère les séries
         result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie, data=data)
     
-        # On normalise (méthode min-max) les valeurs de latitude et longitude
-        latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
-        longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
         if result is not None:
+            # On normalise (méthode min-max) les valeurs de latitude et longitude
+            latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
+            longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
             # On récupère les heures pour plot
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
@@ -145,8 +145,9 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
     # Mélange des données
     random.shuffle(data_train)
     random.shuffle(data_test)
-    data_train = torch.tensor(data_train)
-    data_test = torch.tensor(data_test)
+
+    data_train = np.array(data_train)
+    data_test = np.array(data_test)
     # Enregistrement des données
     torch.save(data_train, 'data_train_' + str(longueur_serie) + '.txt')
     torch.save(data_test, 'data_test_' + str(longueur_serie) + '.txt')
@@ -185,12 +186,12 @@ def data_loader(data_train, data_test, longueur_serie, batch_size = 128):
     longitude_train = data_train[:,1]
     longitude_test = data_test[:,1]
     
-    month_train = np.zeros(((n_train, 12)))
+    month_train = np.zeros((n_train, 12))
     month_test = np.zeros((n_test, 12))
-    day_week_train = np.zeros(((n_train, 7)))
-    day_week_test = np.zeros(((n_train, 7)))
-    direction_train = np.zeros(((n_train, 5)))
-    direction_test = np.zeros(((n_train, 5)))
+    day_week_train = np.zeros((n_train, 7))
+    day_week_test = np.zeros((n_train, 7))
+    direction_train = np.zeros((n_train, 5))
+    direction_test = np.zeros((n_train, 5))
     
     # On crée les one-hot vectors pour les données train/test de mois, jour de la semaine, direction
     for index, elements in enumerate(data_train):

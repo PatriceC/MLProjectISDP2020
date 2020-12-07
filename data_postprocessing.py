@@ -135,10 +135,10 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
         # On génère les séries
         result = series(Date_J=date, latitude=latitude, longitude=longitude, direction=direction, longueur_serie=longueur_serie, data=data)
 
-        # On normalise (méthode min-max) les valeurs de latitude et longitude
-        latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
-        longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
         if result is not None:
+            # On normalise (méthode min-max) les valeurs de latitude et longitude
+            latitude = (latitude - latitude_min)/(latitude_max - latitude_min)
+            longitude = (longitude - longitude_min)/(longitude_max - longitude_min)
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
             # On récupère les heures pour plot
             data_post_hour += [i for i in range(len(target))]
@@ -182,9 +182,9 @@ def data_loader(data_post, longueur_serie):
     latitude_post = data_post[:,0]
     longitude_post = data_post[:,1]
     
-    month_post = np.zeros(((n_post, 12)))
-    day_week_post = np.zeros(((n_post, 7)))
-    direction_post = np.zeros(((n_post, 5)))
+    month_post = np.zeros((n_post, 12))
+    day_week_post = np.zeros((n_post, 7))
+    direction_post = np.zeros((n_post, 5))
     
     # On crée les one-hot vectors pour les données post de mois, jour de la semaine, direction
     for index, elements in enumerate(data_post):
