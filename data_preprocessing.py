@@ -112,11 +112,7 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
     # On va normaliser (méthode min-max) les valeurs
     volume_max, volume_min = data['Volume'].max(), data['Volume'].min()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
-<<<<<<< HEAD:preprocessing_data.py
-
-=======
     # Suppression des jours contenant des données manquantes
->>>>>>> 4ea5cf0aabf4ab73349d20a5b07df84d44deeeef:data_preprocessing.py
     data = data.dropna()
     # On garde les valeurs de mois entre 0 et 11 (plutôt que 1 et 12), ce qui sera plus pratique pour créer des one-hot vectors
     data['Month'] = data['Month'] - 1
@@ -138,10 +134,7 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
             # On récupère les heures pour plot
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-<<<<<<< HEAD:preprocessing_data.py
-=======
                 # On normalise les valeurs
->>>>>>> 4ea5cf0aabf4ab73349d20a5b07df84d44deeeef:data_preprocessing.py
                 s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
                 s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
                 s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
