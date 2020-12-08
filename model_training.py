@@ -10,10 +10,9 @@ import numpy as np
 import torch
 
 
-def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, learning_rate, lr_dim, weight_decay, num_epoch, batch_size):
+def main(nom_model,model, error, data_loader_train, data_loader_test, n_train, optimizer, scheduler, num_epoch, batch_size):
     """
-    
-    Entrainement du modèle et Loss Test
+    Entrainement du modèle et Loss Test.
 
     Parameters
     ----------
@@ -50,13 +49,10 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
         DESCRIPTION. test loss
 
     """
-
     test_loss_list, pourcentage_loss_list = [], []
 
     count, pourcentage = 0, 0.
     for epoch in range(num_epoch):
-        learning_rate /= lr_dim
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_train:
 
             output = model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7)
@@ -83,10 +79,11 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
                 pourcentage_loss_list.append(int(round(100*pourcentage)))
                 test_loss_list.append(test_loss)
                 pourcentage += 0.1
-
+        scheduler.step()
+    plt.figure(0)
     plt.plot(pourcentage_loss_list, test_loss_list)
     plt.xlabel("Pourcentage * Epochs")
-    plt.ylabel("MAE Loss")
+    plt.ylabel("MSE Loss")
     plt.title("{}: Test Loss vs Pourcentage Epochs".format(nom_model))
     plt.show()
 
