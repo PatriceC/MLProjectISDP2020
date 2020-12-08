@@ -58,8 +58,29 @@ Ensuite, on aura une couche fully connected avec comme paramètres la sortie de 
 
 Le modèle est très performant pour prédire à 1 étape, cependant il réagit mal à la prédiction sur plusieurs étapes. En effet, il va rester plus ou moins fidèle aux variations sur les 7 premiers jours (ce qui est normal car en entrée on aura besoin des données des 7 derniers jours) mais deviendra très rapidement linéaire. D'autres modèles de CNN plus simple ou plus complexe, vont globalement aboutir au même résultat mais les plus simples réaliseront la prédiction à plusieurs étapes avec plus de difficulté.
 
+### LSTM
+
+
+
+## Attention Model
+
+L'un des objectifs de l'analyse de Time Series est de réaliser des prédictions à plusieurs étapes de façon précise.
+
+Ainsi, on s'est inspiré de [[1]](#1) pour réaliser un modèle prenant en compte des couches de multi-head-attention.
+
+ <img src="report/attention_scheme.png"/>
+
+Ici, le problème est différent, en effet, on ne cherche pas à prédire des classes. Ainsi, nous ne réalisons pas de Convolution pour simuler des embeddings, toutefois, on conserve l'encodage positionnel et on supprime le softmax final.
+
+On s'est inspiré du programme réaliser en [[2]](#2) pour réaliser à notre tour un Transformer.
+
+
+
 
 
 ## References
 
+<a id="1">[1]</a> Huan Song, Deepta Rajan, Jayaraman J. Thiagarajan, and Andreas Spanias. Attend anddiagnose: Clinical time series analysis using attention models, 2017.
+
+<a id="1">[2]</a> [Oliver Guhr](https://github.com/oliverguhr), [Transformer Time Series Prediction](https://github.com/oliverguhr/transformer-time-series-prediction "Transformer Time Series Prediction Github ")
 

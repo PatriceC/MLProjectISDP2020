@@ -10,10 +10,9 @@ import numpy as np
 import torch
 
 
-def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, optimizer, scheduler, num_epoch, batch_size):
+def main(nom_model,model, error, data_loader_train, data_loader_test, n_train, optimizer, scheduler, num_epoch, batch_size):
     """
-    
-    Entrainement du modèle et Loss Test
+    Entrainement du modèle et Loss Test.
 
     Parameters
     ----------
@@ -50,7 +49,6 @@ def main(nom_model, model, error, data_loader_train, data_loader_test, n_train, 
         DESCRIPTION. test loss
 
     """
-
     test_loss_list, pourcentage_loss_list = [], []
 
     count, pourcentage = 0, 0.
