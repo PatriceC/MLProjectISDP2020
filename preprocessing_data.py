@@ -59,9 +59,6 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
     volume_max, volume_min = data['Volume'].max(), data['Volume'].min()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
-
-    #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
-
     data = data.dropna()
 
     # On va normaliser (méthode min-max) les valeurs de latitude et longitude
@@ -85,9 +82,9 @@ def process_data(longueur_serie=6, file='./Radar_Traffic_Counts.csv'):
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-                s1_norm = list((s1.tolist() - volume_min)/(volume_max - volume_min))
-                s2_norm = list((s2.tolist() - volume_min)/(volume_max - volume_min))
-                s3_norm = list((s3.tolist() - volume_min)/(volume_max - volume_min))
+                s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
+                s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
+                s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
                 if random.random() < 0.9:
                     data_train.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])

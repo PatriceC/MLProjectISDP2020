@@ -78,12 +78,8 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
     data_pred = data_pred.groupby(col)['Volume'].sum().reset_index()
     data_pred = data_pred.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
 
-
-    #data.interpolate(method='linear', inplace=True) # Après ça, il ne reste que 2 lignes comprenant des valeurs NaN dans leurs séries; nous allons les supprimer
-
     data = data.dropna()
     data_pred = data_pred.dropna()
-
 
     # On garde les valeurs de mois entre 0 et 11 (plutôt que 1 et 12), ce qui sera plus pratique pour créer des one-hot vectors
     data['Month'] = data['Month'] - 1
@@ -104,9 +100,9 @@ def process_data(date_range=['2017','2020'], direction=None, latitude=[-100,100]
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
 
             for t, s1, s2, s3 in zip(target, serie_J, serie_J_moins_1, serie_J_moins_7):
-                s1_norm = list((s1.tolist() - volume_min)/(volume_max - volume_min))
-                s2_norm = list((s2.tolist() - volume_min)/(volume_max - volume_min))
-                s3_norm = list((s3.tolist() - volume_min)/(volume_max - volume_min))
+                s1_norm = list((s1 - volume_min)/(volume_max - volume_min))
+                s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
+                s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
                 data_post_date.append(date)
                 data_post.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
