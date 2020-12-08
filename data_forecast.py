@@ -10,9 +10,11 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 
+
 def series(Date_J, latitude, longitude, direction, longueur_serie, data):
-    '''
-    Retourne 3 séries de longueur_serie valeurs de Volume pour un jour, une position, et une direction
+    """
+    Retourne 3 séries de longueur_serie valeurs de Volume pour un jour,
+    une position, et une direction.
 
     Parameters
     ----------
@@ -29,8 +31,7 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     data : TYPE DataFrame
         DESCRIPTION. Donnée
 
-    '''
-
+    """
     # Récupération des données de Date_J (au jour J, J-1, J-2, J-7, J-8)
     row_J = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J) & (data['Direction'] == direction)]
     row_J_moins_1 = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == Date_J - pd.to_timedelta(1, unit='d')) & (data['Direction'] == direction)]
@@ -42,12 +43,12 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
     if (row_J.empty or row_J_moins_1.empty or row_J_moins_7.empty):
         return None
 
-    # Sinon si on a pas de données pour les jour J-2, J-8, on renvoit juste les séries disponibles dans la journée 
+    # Sinon si on a pas de données pour les jour J-2, J-8, on renvoit juste les séries disponibles dans la journée
     elif (row_J_moins_2.empty or row_J_moins_8.empty):
         valeurs_J, valeurs_J_moins_1, valeurs_J_moins_7 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:]
 
         nb_series = 24 - longueur_serie + 1
-        target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series,longueur_serie-1)), np.zeros((nb_series,longueur_serie)), np.zeros((nb_series,longueur_serie))
+        target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series, longueur_serie-1)), np.zeros((nb_series, longueur_serie)), np.zeros((nb_series, longueur_serie))
 
         for h in range(nb_series):
             target[h] = valeurs_J[h + longueur_serie - 1]
@@ -57,30 +58,31 @@ def series(Date_J, latitude, longitude, direction, longueur_serie, data):
 
     # Sinon on dispose de toute les données et on peut générer 24 séries
     else:
-        valeurs_J, valeurs_J_moins_1, valeurs_J_moins_2, valeurs_J_moins_7, valeurs_J_moins_8 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_2.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:], row_J_moins_8.values.tolist()[0][8:]
-        V_J, V_J_1, V_J_7 = valeurs_J_moins_1 + valeurs_J,  valeurs_J_moins_2 + valeurs_J_moins_1, valeurs_J_moins_8 + valeurs_J_moins_7
+        valeurs_J,valeurs_J_moins_1, valeurs_J_moins_2, valeurs_J_moins_7, valeurs_J_moins_8 = row_J.values.tolist()[0][8:], row_J_moins_1.values.tolist()[0][8:], row_J_moins_2.values.tolist()[0][8:], row_J_moins_7.values.tolist()[0][8:], row_J_moins_8.values.tolist()[0][8:]
+        V_J, V_J_1, V_J_7 = valeurs_J_moins_1 + valeurs_J, valeurs_J_moins_2 + valeurs_J_moins_1, valeurs_J_moins_8 + valeurs_J_moins_7
 
         nb_series = 24
-        target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series,longueur_serie-1)), np.zeros((nb_series,longueur_serie)), np.zeros((nb_series,longueur_serie))
+        target, serie_J, serie_J_moins_1, serie_J_moins_7 = np.zeros(nb_series), np.zeros((nb_series, longueur_serie-1)), np.zeros((nb_series, longueur_serie)), np.zeros((nb_series, longueur_serie))
 
         for h in range(nb_series):
             target[h] = V_J[h + nb_series]
             serie_J[h] = V_J[h + nb_series - longueur_serie + 1 : h + nb_series]
             serie_J_moins_1[h] = V_J_1[h + nb_series - longueur_serie : h + nb_series]
             serie_J_moins_7[h] = V_J_7[h + nb_series - longueur_serie : h + nb_series]
-    
+
     return(target, serie_J, serie_J_moins_1, serie_J_moins_7)
 
-def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitude=30.268652000000003, longitude=-97.759929, longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
-    '''
-    Forecast des données à partir du premier élément de date_range jusqu'au dernier'
+
+def forecast(model, date_range=['2018-07-09', '2018-08-10'], direction=0, latitude=30.268652000000003, longitude=-97.759929, longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
+    """
+    Forecast des données à partir du premier élément de date_range jusqu'au dernier.
 
     Parameters
     ----------
     model : TYPE
         DESCRIPTION. Model utiliser pour Forecast
     date_range : TYPE, optional
-        DESCRIPTION. The default is ['2018-07-09','2018-08-10'].
+        DESCRIPTION. The default is ['2018-07-09', '2018-08-10'].
     direction : TYPE, optional
         DESCRIPTION. The default is 0.
     latitude : TYPE, optional
@@ -92,8 +94,7 @@ def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitud
     file : TYPE, optional
         DESCRIPTION. The default is './Radar_Traffic_Counts.csv'.
 
-    '''
-
+    """
     data = pd.read_csv(file)
 
     # On va normaliser (méthode min-max) les valeurs de latitude et longitude
@@ -103,7 +104,7 @@ def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitud
     # Préparation du Dataset
     data = data.drop(columns=['location_name', 'Time Bin'])
     data['Direction'] = data['Direction'].astype('category').cat.codes
-    data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors = 'coerce')
+    data['Date'] = pd.to_datetime(data[['Year', 'Month', 'Day']], errors='coerce')
     data = data.sort_values(['Date'])
     data_pred = data[(data['Date'] >= date_range[0]) & (data['Date'] <= date_range[1])]
     data_pred = data_pred[data_pred['location_latitude'] == latitude]
@@ -145,7 +146,7 @@ def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitud
         if result is not None:
             target, serie_J, serie_J_moins_1, serie_J_moins_7 = result
             # On récupère les heures pour plot
-            data_for_hour += [(i + longueur_serie - 1)%24 for i in range(len(target))]
+            data_for_hour += [(i + longueur_serie - 1) % 24 for i in range(len(target))]
             for k in range(len(target)):
                 t, s1, s2, s3 = target[k], serie_J[k], serie_J_moins_1[k], serie_J_moins_7[k]
                 # On normalise les valeurs
@@ -153,11 +154,11 @@ def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitud
                 s2_norm = list((s2 - volume_min)/(volume_max - volume_min))
                 s3_norm = list((s3 - volume_min)/(volume_max - volume_min))
                 t_norm = (t - volume_min)/(volume_max - volume_min)
-                
+
                 # On récupère les date et les vraies données pour plot
                 data_for_date.append(date)
                 data_for.append([latitude, longitude, month, day_week, direction] + s1_norm + s2_norm + s3_norm + [t_norm])
-                
+
                 # Si on a déjà prédit la journée, on l'utilise
                 if date - pd.to_timedelta(1, unit='d') in forecast_date:
                     i = forecast_date.index(date - pd.to_timedelta(1, unit='d'))
@@ -178,9 +179,10 @@ def forecast(model, date_range=['2018-07-09','2018-08-10'], direction=0, latitud
 
     return (np.array(data_for), np.array(data_for_date), np.array(data_for_hour), volume_max, volume_min, np.array(forecast))
 
+
 def plot(data_for, output, data_for_date, data_for_hour):
-    '''
-    Plot et renvoie du DataFrame avec les données prédites et vraies
+    """
+    Plot et renvoie du DataFrame avec les données prédites et vraies.
 
     Parameters
     ----------
@@ -193,15 +195,15 @@ def plot(data_for, output, data_for_date, data_for_hour):
     data_for_hour : TYPE
         DESCRIPTION.
 
-    '''
-    data_for = data_for[:,[0,1,2,3,4,-1]]
+    """
+    data_for = data_for[:, [0, 1, 2, 3, 4, -1]]
     data_for_pd = pd.DataFrame(data_for)
     data_for_pd.columns = ['latitude', 'longitude', 'month', 'day_week', 'direction', 'to_pred']
     data_for_datetime = [data_for_date[i] + pd.to_timedelta(data_for_hour[i], unit='h') for i in range(len(data_for_date))]
     data_for_pd['Datetime'] = data_for_datetime
     data_for_pd.index = data_for_pd['Datetime']
     data_for_pd['pred'] = output
-    plt.figure(0)
+    plt.figure(1)
     data_for_pd['to_pred'].plot(label='Data')
     data_for_pd['pred'].plot(label='Pred')
     plt.ylabel("Volume")

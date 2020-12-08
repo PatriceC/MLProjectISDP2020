@@ -5,7 +5,7 @@ class LSTM_NN(nn.Module):
     """
 
     """
-    def __init__(self, longueur_serie):
+    def __init__(self,longueur_serie):
         super(LSTM_NN, self).__init__()
 
         self.lstm = nn.LSTM(input_size=3, hidden_size=100, num_layers=1, batch_first=True)
@@ -26,16 +26,16 @@ class LSTM_NN(nn.Module):
         serie_J = serie_J.float().unsqueeze(2)
         serie_J_moins_1 = serie_J_moins_1.float().unsqueeze(2)
         serie_J_moins_7 = serie_J_moins_7.float().unsqueeze(2)
-    
-        input = torch.cat((serie_J_moins_1[:,:-1,:], serie_J_moins_7[:,:-1,:], serie_J), dim=2)
+
+        input = torch.cat((serie_J_moins_1[:, :-1, :], serie_J_moins_7[:, :-1, :], serie_J), dim=2)
 
         out, _ = self.lstm(input)
 
-        out = out[:,-1,:]
+        out = out[:, -1, :]
 
         out = self.dropout(out)
 
-        input_2 = torch.cat((out, latitude, longitude, month, day_week, direction, serie_J_moins_7[:,-1,:]), dim=1)
+        input_2 = torch.cat((out, latitude, longitude, month, day_week, direction, serie_J_moins_7[:, -1, :]), dim=1)
 
         out = self.lin(input_2)
         out = self.relu(out)
