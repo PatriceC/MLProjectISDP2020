@@ -123,8 +123,8 @@ def process_data(input_window=7, output_window=24, file='./Radar_Traffic_Counts.
     data_train = np.array(data_train)
     data_test = np.array(data_test)
     # Enregistrement des données
-    torch.save(data_train, 'data_train_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
-    torch.save(data_test, 'data_test_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
+    torch.save(data_train, './data/data_train_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
+    torch.save(data_test, './data/data_test_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
     
     return(data_train, data_test)
 
