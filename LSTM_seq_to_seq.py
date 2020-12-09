@@ -1,7 +1,14 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Nov 28 23:02:46 2020
+
+@author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
+"""
+
 import torch as torch
 import torch.nn as nn
 
-class LSTM_NN(nn.Module):
+class LSTM(nn.Module):
     """
         Implémentation d'un LSTM seq-to-seq
     """
@@ -14,7 +21,7 @@ class LSTM_NN(nn.Module):
                 Représente le nombre d'heure de la séquence de sortie
                 Longueur de la séquence de sortie: output_window
         """
-        super(LSTM_NN, self).__init__()
+        super(LSTM, self).__init__()
 
         self.input_window = input_window
         self.output_window = output_window
