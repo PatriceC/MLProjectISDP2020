@@ -218,7 +218,7 @@ def forecast(epoch=0, steps=100):
     model.eval()
     data = data_test[0, 0].unsqueeze(1).unsqueeze(2)
     with torch.no_grad():
-        for i in range(0, steps):
+        for _ in range(steps):
             output = model(data[-longueur_serie:])
             data = torch.cat((data, output[-1:]))
 
