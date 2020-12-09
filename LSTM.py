@@ -5,7 +5,7 @@ class LSTM_NN(nn.Module):
     """
 
     """
-    def __init__(self,longueur_serie):
+    def __init__(self, longueur_serie):
         super(LSTM_NN, self).__init__()
 
         self.lstm = nn.LSTM(input_size=3, hidden_size=100, num_layers=2, batch_first=True)

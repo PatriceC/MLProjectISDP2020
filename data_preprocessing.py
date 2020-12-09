@@ -80,14 +80,6 @@ def process_data(longueur_serie=24, file='./Radar_Traffic_Counts.csv'):
 
     Parameters
     ----------
-    date_range : TYPE, optional
-        DESCRIPTION. The default is ['2017', '2020'].
-    direction : TYPE, optional
-        DESCRIPTION. The default is None.
-    latitude : TYPE, optional
-        DESCRIPTION. The default is [-100, 100].
-    longitude : TYPE, optional
-        DESCRIPTION. The default is [-100, 100].
     longueur_serie : TYPE, optional
         DESCRIPTION. The default is 6.
     file : TYPE, optional
