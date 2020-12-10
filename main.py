@@ -5,17 +5,16 @@ Created on Mon Nov  9 12:49:11 2020
 @author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
 
-import numpy as np
 import torch as torch
 import torch.nn as nn
 
 import data_preprocessing
 import model_training
-import data_postprocessing
-import data_forecast
+# import visualisation
 
-import LSTM_seq_to_seq
-import CNN_seq_to_seq
+from models import LSTM_seq_to_seq
+from models import CNN_seq_to_seq
+from models import TRANSFORMER_seq_to_seq
 
 # %% Data Preprocessing
 
@@ -35,13 +34,13 @@ else:
 n_train, n_test = data_train.shape[0], data_test.shape[0]
 # data_train, data_test = data_train[:int(0.3*n_train)], data_test[:int(0.3*n_test)]
 
-batch_size = 128
+batch_size = 256
 
 data_train_loader, data_test_loader = data_preprocessing.data_loader(data_train, data_test, input_window, output_window, batch_size=batch_size)
 
 # %% Définition du model utilisé
 
-model_dispo = ['LSTM', 'CNN']
+model_dispo = ['LSTM', 'CNN', 'Transformer']
 nom_model = input("Choisir le modèle à traiter parmis : {}\n".format(model_dispo))
 
 if nom_model == 'LSTM':
@@ -55,6 +54,15 @@ if nom_model == 'LSTM':
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 elif nom_model == 'CNN':
     model = CNN_seq_to_seq.CNN(input_window, output_window)
+    print(model)
+    criterion = nn.MSELoss()
+    learning_rate = 0.001
+    weight_decay = 0.0001
+    num_epochs = 5
+    optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
+elif nom_model == 'Transformer':
+    model = TRANSFORMER_seq_to_seq.Transformer(input_window, output_window)
     print(model)
     criterion = nn.MSELoss()
     learning_rate = 0.001

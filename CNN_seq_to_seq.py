@@ -16,7 +16,19 @@ class CNN(nn.Module):
         Classe du modèle CNN final utilisé
     """
     def __init__(self, input_window, output_window):
+        """
+            input_window: int
+                Représente le nombre de jour de la séquence d'entrée
+                Longueur de la séquence d'entrée: 24 * input_window
+            output_window: int
+                Représente le nombre d'heure de la séquence de sortie
+                Longueur de la séquence de sortie: output_window
+        """
         super(CNN, self).__init__()
+
+        self.input_window = input_window
+        self.output_window = output_window
+        self.name_model = "CNN"
 
         self.layer1 = nn.Sequential(
             nn.Conv1d(in_channels=1, out_channels=24, kernel_size=3, padding=1),
@@ -27,9 +39,9 @@ class CNN(nn.Module):
             nn.Conv1d(in_channels=24, out_channels=48, kernel_size=3, padding=1),
             nn.BatchNorm1d(48),
             nn.ReLU(),
-            nn.AdaptiveMaxPool1d(input_window * 24 - 1)
+            nn.AdaptiveMaxPool1d(input_window * 24)
         )
-        self.fc1 = nn.Linear(in_features=48 * (input_window * 24 - 1) + 7, out_features=128)
+        self.fc1 = nn.Linear(in_features=48 * (input_window * 24) + 7, out_features=128)
         self.fc2 = nn.Linear(in_features=128, out_features=32)
         self.fc3 = nn.Linear(in_features=32, out_features=output_window)
 
@@ -68,14 +80,14 @@ class CNN(nn.Module):
   
 # Our input timeserie is changing in a following way:
 
-#     1st Convolution layer : (S-1) * 3, output: (S-3) * 24
-#     1st Max Pooling layer : (S-3) * 24, output: (S-3)//2 * 24
-#     2nd Convolution layer : (S-1)//2 * 24, output: (S-3) * 48
-#     2nd Adaptive Max Pooling layer : (S-3)//2 * 48, output: (S-1) * 48
+#     1st Convolution layer : (input_window*24) * 1, output: (input_window*24-2) * 24
+#     1st Max Pooling layer : (input_window*24-2) * 24, output: (input_window*24-2)//2 * 24
+#     2nd Convolution layer : (input_window*24-2)//2 * 24, output: (input_window*24-2)//2 - 2 * 48
+#     2nd Adaptive Max Pooling layer : (input_window*24-2)//2 - 2 * 48, output: (input_window*24) * 48
 
-#     First Linear layer : input : 48*(S-1) + 2 + 1 +1 + 12 + 7 + 5, output: 128
+#     First Linear layer : input : 48*(input_window*24) + 7, output: 128
 #     Second Linear layer : input :128, output: 32
-#     Third Linear layer : input : 32, output: 1
+#     Third Linear layer : input : 32, output: output_window
 
 # %% Previous Model
 
