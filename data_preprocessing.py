@@ -12,8 +12,11 @@ import torch
 
 import random
 
+
 def series(date, latitude, longitude, direction, input_window, output_window, data):
     """
+    Series selection.
+
     Parameters
     ----------
     date : TYPE datetime
@@ -55,7 +58,7 @@ def series(date, latitude, longitude, direction, input_window, output_window, da
     for h in range(nb_series):
         target[h] = serie_totale[h + input_window * nb_series : h + input_window * nb_series + output_window]
         serie[h] = serie_totale[h : h + input_window * nb_series]
-        
+
     return(target, serie)
 
 
@@ -122,13 +125,13 @@ def process_data(input_window=7, output_window=24, file='./Radar_Traffic_Counts.
     # Enregistrement des données
     torch.save(data_train, './data/data_train_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
     torch.save(data_test, './data/data_test_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
-    
+
     return(data_train, data_test)
+
 
 def data_loader(data_train, data_test, input_window, output_window, batch_size=128):
     """
-    On construit nos DataLoaders de train/test que nous utiliserons
-    pour itérer sur les données pour l'apprentissage de modèles.
+    On construit nos DataLoaders de train/test que nous utiliserons pour itérer sur les données pour l'apprentissage de modèles.
 
     Parameters
     ----------
@@ -150,12 +153,12 @@ def data_loader(data_train, data_test, input_window, output_window, batch_size=1
     data_loader_test : TYPE DataLoader
         DESCRIPTION. Test DataLoader
     """
-    day_of_week_train = data_train[:,:7]
-    day_of_week_test = data_test[:,:7]
-    serie_train = data_train[:,7:-output_window]
-    serie_test = data_test[:,7:-output_window]
-    target_train = data_train[:,-output_window:]
-    target_test = data_test[:,-output_window:]
+    day_of_week_train = data_train[:, :7]
+    day_of_week_test = data_test[:, :7]
+    serie_train = data_train[:, 7:-output_window]
+    serie_test = data_test[:, 7:-output_window]
+    target_train = data_train[:, -output_window:]
+    target_test = data_test[:, -output_window:]
 
     data_loader_train = torch.utils.data.DataLoader(list(zip(zip(day_of_week_train, serie_train), target_train)), batch_size=batch_size, shuffle=True)
     data_loader_test = torch.utils.data.DataLoader(list(zip(zip(day_of_week_test, serie_test), target_test)), batch_size=batch_size, shuffle=True)

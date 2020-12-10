@@ -10,19 +10,26 @@ import torch.nn as nn
 
 # %% Model
 
+
 class CNN(nn.Module):
     """
-        Implémentation d'un CNN seq-to-seq
-        Classe du modèle CNN final utilisé
+    Implémentation d'un CNN seq-to-seq.
+
+    Classe du modèle CNN final utilisé
     """
+
     def __init__(self, input_window, output_window):
         """
-            input_window: int
-                Représente le nombre de jour de la séquence d'entrée
-                Longueur de la séquence d'entrée: 24 * input_window
-            output_window: int
-                Représente le nombre d'heure de la séquence de sortie
-                Longueur de la séquence de sortie: output_window
+        Init.
+
+        Parameters
+        ----------
+        input_window: int
+            Représente le nombre de jour de la séquence d'entrée
+            Longueur de la séquence d'entrée: 24 * input_window
+        output_window: int
+            Représente le nombre d'heure de la séquence de sortie
+            Longueur de la séquence de sortie: output_window
         """
         super(CNN, self).__init__()
 
@@ -46,10 +53,10 @@ class CNN(nn.Module):
         self.fc3 = nn.Linear(in_features=32, out_features=output_window)
 
     def forward(self, day_of_week, serie_input):
-
+        """Forward Pass."""
         serie_input = serie_input.float().unsqueeze(1)
         day_of_week = day_of_week.float()
-        
+
         input_1 = serie_input
 
         out = self.layer1(input_1)
@@ -65,19 +72,15 @@ class CNN(nn.Module):
         out = out.relu()
         out = self.fc3(out)
         return out
-    
+
     def save(self):
-        """
-            Enregistre le modèle pour inférence dans le futur
-        """
+        """Enregistre le modèle pour inférence dans le futur."""
         torch.save(self.state_dict(), './models/model_' + self.name_model + '_' + str(self.input_window) + '_days_to_' + str(self.output_window) + '_hours.pt')
-    
+
     def load(self):
-        """
-            Récupère un modèle déjà entrainé pour inférer
-        """
+        """Récupère un modèle déjà entrainé pour inférer."""
         self.load_state_dict(torch.load('./models/model_' + self.name_model + '_' + str(self.input_window) + '_days_to_' + str(self.output_window) + '_hours.pt'))
-  
+
 # Our input timeserie is changing in a following way:
 
 #     1st Convolution layer : (input_window*24) * 1, output: (input_window*24-2) * 24
