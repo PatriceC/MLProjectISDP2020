@@ -31,7 +31,7 @@ else:
     data_train = torch.load('./data/data_train_{}_days_to_{}_hours.txt'.format(input_window, output_window))
     data_test = torch.load('./data/data_test_{}_days_to_{}_hours.txt'.format(input_window, output_window))
 
-batch_size = 128
+batch_size = 256
 
 data_train_loader, data_test_loader = data_preprocessing.data_loader(data_train, data_test, input_window, output_window, batch_size=batch_size)
 
@@ -53,18 +53,18 @@ elif nom_model == 'CNN':
     model = CNN_seq_to_seq.CNN(input_window, output_window)
     print(model)
     criterion = nn.MSELoss()
-    learning_rate = 0.001
+    learning_rate = 0.002
     weight_decay = 0.0001
-    num_epochs = 5
+    num_epochs = 10
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 elif nom_model == 'Transformer':
     model = TRANSFORMER_seq_to_seq.Transformer(input_window, output_window)
     print(model)
     criterion = nn.MSELoss()
-    learning_rate = 0.001
+    learning_rate = 0.002
     weight_decay = 0.0001
-    num_epochs = 5
+    num_epochs = 10
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 else:

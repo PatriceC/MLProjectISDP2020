@@ -101,7 +101,7 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
                 print('-'*10)
 
                 # Visualisation
-                visualisation.pred_vs_reality(model, input_window, output_window, epoch=epoch, pourcentage=pourcentage)
+                visualisation.pred_vs_reality(model, input_window, output_window, epoch=epoch, pourcentage=round(100*pourcentage))
                 pourcentage += 0.1
                 start_time = time.time()
 
