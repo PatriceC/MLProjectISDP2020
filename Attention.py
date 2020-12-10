@@ -35,13 +35,13 @@ class PositionalEncoding(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, feature_size=250, num_layers=1, dropout=0.1, longueur_serie=23):
+    def __init__(self, feature_size=230, num_layers=1, dropout=0.1, longueur_serie=23):
         super(Transformer, self).__init__()
         self.model_type = 'Transformer'
 
         self.src_mask = None
         self.pos_encoder = PositionalEncoding(feature_size)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=10, dropout=dropout)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=23, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers).float()
         self.decoder = nn.Linear(feature_size, 1)
         self.init_weights()
@@ -223,7 +223,7 @@ def forecast(epoch=0, steps=100):
             data = torch.cat((data, output[-1:]))
 
     data = data.cpu().view(-1)
-    truth = data_test[:len(data), 1, -1]
+    truth = data_test[1:len(data), 1, -1]
 
     plt.figure(10000 + epoch)
     plt.plot(truth, color="green")
@@ -249,14 +249,14 @@ data_test_loader = torch.utils.data.DataLoader(list(zip(data_test[:, 0, :], data
 
 # %% Model Training & Testing
 
-model = Transformer(250).to(device)
+model = Transformer(230).to(device)
 
 error = nn.MSELoss()
 lr = 0.005
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.90)
 
-num_epochs = 10
+num_epochs = 20
 
 test_loss_list = []
 for epoch in range(1, num_epochs + 1):
@@ -310,7 +310,7 @@ for epoch in range(1, num_epochs + 1):
             plt.savefig('attention_graph/transformer-epoch{}-{}%.png'.format(epoch, int(round(100*pourcentage))), dpi=300)
 
             pourcentage_loss_list.append(int(round(100*pourcentage)))
-            pourcentage += 0.1
+            pourcentage += 0.05
             start_time = time.time()
 
     print('Time for Epoch : {:5.2f}s '.format(time.time() - epoch_start_time))
@@ -318,3 +318,5 @@ for epoch in range(1, num_epochs + 1):
     forecast(epoch)
 
     scheduler.step()
+
+torch.save(model, 'TransformerV3.mod')
