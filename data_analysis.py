@@ -26,6 +26,7 @@ data_pd['Date'] = pd.to_datetime(data_pd[['Year', 'Month', 'Day','Hour']])
 data_pd.index = data_pd['Date']
 
 data_pd_0 = data_pd[data_pd['Direction'] == 0].sort_values(['Year', 'Month', 'Day', 'Hour'])
+# data_pd_0 = data_pd[(data_pd['Direction'] == 0) & (data_pd['location_latitude']==30.268652000000003) & (data_pd['location_longitude']==-97.759929)].sort_values(['Year', 'Month', 'Day', 'Hour'])
 
 plt.figure(0)
 data_pd_0[(data_pd_0['Date'] >= '2018-07-09') & (data_pd_0['Date'] <= '2018-08-10')]['Volume'].plot(label='Mois du 09/07/18 au 10/08/18')
