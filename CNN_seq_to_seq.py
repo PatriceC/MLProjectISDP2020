@@ -2,7 +2,7 @@
 """
 Created on Sat Nov 28 23:02:46 2020
 
-@author: Patrice CHANOL
+@author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
 
 import torch
@@ -11,12 +11,15 @@ import torch.nn as nn
 # %% Model
 
 class CNN(nn.Module):
-
-    def __init__(self, S):
+    """
+        Implémentation d'un CNN seq-to-seq
+        Classe du modèle CNN final utilisé
+    """
+    def __init__(self, input_window, output_window):
         super(CNN, self).__init__()
 
         self.layer1 = nn.Sequential(
-            nn.Conv1d(in_channels=3, out_channels=24, kernel_size=3, padding=1),
+            nn.Conv1d(in_channels=1, out_channels=24, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2)
         )
@@ -24,26 +27,44 @@ class CNN(nn.Module):
             nn.Conv1d(in_channels=24, out_channels=48, kernel_size=3, padding=1),
             nn.BatchNorm1d(48),
             nn.ReLU(),
-            nn.AdaptiveMaxPool1d(S-1)
+            nn.AdaptiveMaxPool1d(input_window * 24 - 1)
         )
-        self.fc1 = nn.Linear(in_features = 48*(S-1) + 2 + 1 +1 + 12 + 7 + 5, out_features=128)
+        self.fc1 = nn.Linear(in_features=48 * (input_window * 24 - 1) + 7, out_features=128)
         self.fc2 = nn.Linear(in_features=128, out_features=32)
-        self.fc3 = nn.Linear(in_features=32, out_features=1)
+        self.fc3 = nn.Linear(in_features=32, out_features=output_window)
 
-    def forward(self, x_latitude, x_longitude, x_month, x_day_week, x_direction, x_1, x_2, x_3):
-        x = torch.cat((x_1.double().unsqueeze(1), x_2[:,:-1].double().unsqueeze(1), x_3[:,:-1].double().unsqueeze(1)), dim=1)
-        out = self.layer1(x)
+    def forward(self, day_of_week, serie_input):
+
+        serie_input = serie_input.float().unsqueeze(1)
+        day_of_week = day_of_week.float()
+        
+        input_1 = serie_input
+
+        out = self.layer1(input_1)
         out = self.layer2(out)
         out = out.view(out.size(0), -1)
-        out = torch.cat((out, x_2[:,-1].double().unsqueeze(1), x_3[:,-1].double().unsqueeze(1), x_latitude.unsqueeze(1), x_longitude.unsqueeze(1), x_month, x_day_week, x_direction), dim=1)
-        out = self.fc1(out)
+
+        input_2 = torch.cat((out, day_of_week), dim=1)
+
+        out = self.fc1(input_2)
         out = out.relu()
         out = nn.Dropout(0.25)(out)
         out = self.fc2(out)
         out = out.relu()
         out = self.fc3(out)
-
-        return out.view(-1)
+        return out
+    
+    def save(self):
+        """
+            Enregistre le modèle pour inférence dans le futur
+        """
+        torch.save(self.state_dict(), './models/model_' + self.name_model + '_' + str(self.input_window) + '_days_to_' + str(self.output_window) + '_hours.pt')
+    
+    def load(self):
+        """
+            Récupère un modèle déjà entrainé pour inférer
+        """
+        self.load_state_dict(torch.load('./models/model_' + self.name_model + '_' + str(self.input_window) + '_days_to_' + str(self.output_window) + '_hours.pt'))
   
 # Our input timeserie is changing in a following way:
 
