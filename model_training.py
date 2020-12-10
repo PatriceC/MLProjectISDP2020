@@ -5,12 +5,12 @@ Created on Mon Nov 23 13:54:58 2020
 @author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
+import time
+# import visualisation
 
-
-def main(nom_model,model, error, data_loader_train, data_loader_test, n_train, optimizer, scheduler, num_epoch, batch_size):
+def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_loader, num_epochs, input_window, output_window, batch_size):
     """
     Entrainement du modèle et Loss Test.
 
@@ -18,22 +18,22 @@ def main(nom_model,model, error, data_loader_train, data_loader_test, n_train, o
     ----------
     model : TYPE
         DESCRIPTION. model to train
-    error : TYPE
-        DESCRIPTION. error to compute
+    criterion : TYPE
+        DESCRIPTION. criterion to compute
+    optimizer : TYPE
+        DESCRIPTION.
+    scheduler : TYPE
+        DESCRIPTION.
     data_loader_train : TYPE
         DESCRIPTION. train set
     data_loader_test : TYPE
         DESCRIPTION. test set
-    n_train : TYPE
-        DESCRIPTION. train dataset length
-    learning_rate : TYPE
-        DESCRIPTION. model learning rate
-    lr_dim : TYPE
-        DESCRIPTION. diminution of learning rate
-    weight_decay : TYPE
-        DESCRIPTION. weight decay
-    num_epoch : TYPE
+    num_epochs : TYPE
         DESCRIPTION. number of epoch to compute
+    input_window : TYPE
+        DESCRIPTION. input windonw length
+    output_window : TYPE
+        DESCRIPTION. output windonw length
     batch_size : TYPE
         DESCRIPTION. batch_size
 
@@ -41,50 +41,53 @@ def main(nom_model,model, error, data_loader_train, data_loader_test, n_train, o
     -------
     model : TYPE
         DESCRIPTION. trained model
-    error : TYPE
-        DESCRIPTION. model error used
-    pourcentage_loss_list : TYPE
-        DESCRIPTION. percentage done
     test_loss_list : TYPE
         DESCRIPTION. test loss
 
     """
-    test_loss_list, pourcentage_loss_list = [], []
-
-    count, pourcentage = 0, 0.
-    for epoch in range(num_epoch):
-        for (latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7), target in data_loader_train:
-
-            output = model.forward(latitude, longitude, month, day_week, direction, serie_J, serie_J_moins_1, serie_J_moins_7)
-            loss = error(output, target)
+    test_loss_list = []
+    n_batches = len(data_train_loader)
+    for epoch in range(1, num_epochs + 1):
+        epoch_start_time = time.time()
+        model.train()
+        pourcentage = 0.
+        test_loss_batch = []
+        start_time = time.time()
+    
+        for batch, ((day_of_week, serie_input), serie_output) in enumerate(data_train_loader):
             optimizer.zero_grad()
+            output = model.forward(day_of_week, serie_input.float())
+            loss = criterion(output, serie_output.float())
             loss.backward()
+            if model.name_model == 'Transformer':
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 0.7)
             optimizer.step()
-
-            count += batch_size
-
-            if count >= pourcentage * n_train:
-                test_loss_batch = []
-
-                for (latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t), target_t in data_loader_test:
-
-                    output_t = model.forward(latitude_t, longitude_t, month_t, day_week_t, direction_t, serie_J_t, serie_J_moins_1_t, serie_J_moins_7_t)
-                    loss_test = error(output_t, target_t).data.item()
-                    test_loss_batch.append(loss_test)
-
+    
+            count_pourcentage = batch / n_batches
+            if count_pourcentage >= pourcentage:
+                T = time.time() - start_time
+                model.eval()
+                with torch.no_grad():
+                    for ((day_of_week_t, serie_input_t), serie_output_t) in data_test_loader:
+                        output_t = model.forward(day_of_week_t, serie_input_t.float())
+                        loss_t = criterion(output_t, serie_output_t.float())
+                        test_loss_batch.append(loss_t.item())
                 test_loss = np.mean(test_loss_batch)
-                print("Pourcentage * Epoch: {}%, Epoch: {}".format(int(round(100*pourcentage)), epoch+1))
-                print(test_loss)
-                print()
-                pourcentage_loss_list.append(int(round(100*pourcentage)))
                 test_loss_list.append(test_loss)
+    
+                print('-'*10)
+                print("Pourcentage: {}%, Test Loss : {}, Epoch: {}, Temps : {}s".format(round(100*pourcentage), test_loss, epoch, round(T)))
+                print('-'*10)
+                # visualisation.pred_vs_reality(model, input_window, output_window, epoch=epoch, porucentage=pourcentage)
                 pourcentage += 0.1
+                start_time = time.time()
+    
+        print('Fin epoch : {}, Temps de l\'epoch : {}s'.format(epoch, round(time.time() - epoch_start_time)))
+    
+        # visualisation.forecast(model, input_window, output_window, epoch=epoch)
+    
         scheduler.step()
-    plt.figure(0)
-    plt.plot(pourcentage_loss_list, test_loss_list)
-    plt.xlabel("Pourcentage * Epochs")
-    plt.ylabel("MSE Loss")
-    plt.title("{}: Test Loss vs Pourcentage Epochs".format(nom_model))
-    plt.show()
 
-    return model, pourcentage_loss_list, test_loss_list
+    model.save()
+
+    return model, test_loss_list
