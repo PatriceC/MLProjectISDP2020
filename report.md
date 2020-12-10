@@ -23,16 +23,10 @@ Nous pouvons remarqué une saisonnalité journalière et hebdomadaire des volume
 
 Ainsi, nous avons choisis de garder comme paramètres : 
 
-- Les volumes horaires sur une période de longueur T (entre 1h et 24h)
-  - Les T-1 heures avant l'heure à prédire
-  - Les T heures, 24h avant l'heure à prédire
-  - Les T heures, 7 jours avant l'heure à prédire
-- Les localisations normalisées (latitude, longitude)
-- Les directions sous forme de one-hot-vector
-- Le nom du jour de la semaine sous forme de one-hot-vector
-- Le numéro du mois sous forme de one-hot-vector
+- Les volumes horaires sur une période de longueur T : fenêtre d'entrée
+- Le jour de la semaine sous forme de one-hot-vector
 
-Il pourrait être intéressant de conserver les volumes sur toute la semaine.
+Il pourrait être intéressant d'utiliser d'autres données mais elle ne semble pas plus nécessaire à prédire et n'améliore que très peu les modèles.
 
 ## Models
 
@@ -40,23 +34,25 @@ Il pourrait être intéressant de conserver les volumes sur toute la semaine.
 
 Il s'agit d'un CNN simple comprenant 2 couches de convolutions.
 
-Les 3 séries (de longueur T-1) vont passer dans une première couche pour en sortir 24 nouvelles, puis les 24 vont passer dans une deuxième couche pour en sortir 48.
+La fenêtre d'entrée va passer  dans une première couche pour en sortir 24 nouvelles, puis les 24 vont passer dans une deuxième couche pour en sortir 48.
 
-Ensuite, on aura une couche fully connected avec comme paramètres la sortie de la deuxième convolution, les valeurs à T-24h et T-7jours, les one-hot vectors des mois, jours de la semaine, la longitude et la latitude et on va prédire l'heure suivante
+Ensuite, on aura une couche fully connected avec comme paramètres la sortie de la deuxième convolution, les one-hot vectors des jours de la semaine et on va prédire l'output_window
 
 <img src="report/CNN_loss.png"/>
 
-<img src="report/CNN_post.png"/>
+<img src="report/CNN_training.gif" width="75%"/>
 
-​																		Données vs Prédictions à partir des données
+​																		Evolution des prédictions pendant l'apprentissage
 
-<img src="report/CNN_forecast.png"/>
+<img src="report/CNN_forecast.gif" width="75%"/>
 
 ​																		Données vs Prédictions à partir des prédictions
 
 
 
-Le modèle est très performant pour prédire à 1 étape, cependant il réagit mal à la prédiction sur plusieurs étapes. En effet, il va rester plus ou moins fidèle aux variations sur les 7 premiers jours (ce qui est normal car en entrée on aura besoin des données des 7 derniers jours) mais deviendra très rapidement linéaire. D'autres modèles de CNN plus simple ou plus complexe, vont globalement aboutir au même résultat mais les plus simples réaliseront la prédiction à plusieurs étapes avec plus de difficulté.
+En fonction de la taille de la fenêtre de sorti le modèle sera plus ou moins performant pour prédire ou pour forecast.
+
+En effet, une très petit fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusque. A l'inverse, les modèles avec un fenêtre de sortie plus grande seront moins performant pour prédire mais bien plus efficace pour forecast.
 
 ### LSTM
 
@@ -73,6 +69,12 @@ Ainsi, on s'est inspiré de [[1]](#1) pour réaliser un modèle prenant en compt
 Ici, le problème est différent, en effet, on ne cherche pas à prédire des classes. Ainsi, nous ne réalisons pas de Convolution pour simuler des embeddings, toutefois, on conserve l'encodage positionnel et on supprime le softmax final.
 
 On s'est inspiré du programme réaliser en [[2]](#2) pour réaliser à notre tour un Transformer.
+
+Il aurait pu être intéressant aussi implémenter un Transformer qui prend en compte les one-hot-vectors des jours de la semaine comme le suggère le modèle de l'article [Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting](#https://arxiv.org/pdf/1912.09363.pdf "Temporal Fusion Transformers for Interpretable Multi-horizon Time Series Forecasting") pour prendre en compte des "future inputs". On aurait pu aussi implémenter des convolutions causales comme propose [Enhancing the Locality and Breaking the Memory Bottleneck of Transformer on Time Series Forecasting](#https://arxiv.org/pdf/1907.00235.pdf "Enhancing the Locality and Breaking the Memory Bottleneck of Transformer on Time Series Forecasting").
+
+Toutefois, ce modèle simple est déjà performant.
+
+
 
 
 
