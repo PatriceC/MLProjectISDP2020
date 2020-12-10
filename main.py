@@ -32,7 +32,6 @@ else:
     data_test = torch.load('./data/data_test_{}_days_to_{}_hours.txt'.format(input_window, output_window))
 
 n_train, n_test = data_train.shape[0], data_test.shape[0]
-# data_train, data_test = data_train[:int(0.3*n_train)], data_test[:int(0.3*n_test)]
 
 batch_size = 256
 
@@ -47,9 +46,9 @@ if nom_model == 'LSTM':
     model = LSTM_seq_to_seq.LSTM(input_window, output_window)
     print(model)
     criterion = nn.MSELoss()
-    learning_rate = 0.001
+    learning_rate = 0.002
     weight_decay = 0.0001
-    num_epochs = 5
+    num_epochs = 10
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 elif nom_model == 'CNN':
@@ -77,6 +76,7 @@ else:
 
 model, test_loss_list = model_training.main(model, criterion, optimizer, scheduler, data_train_loader, data_test_loader, num_epochs, input_window, output_window, batch_size)
 
+model.save()
 # %% Validation
 
 # # On va afficher les prédictions et les réalisations sur une date fixée
