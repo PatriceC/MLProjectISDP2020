@@ -10,11 +10,11 @@ import torch.nn as nn
 
 import data_preprocessing
 import model_training
-# import visualisation
+import visualisation
 
-from models import LSTM_seq_to_seq
-from models import CNN_seq_to_seq
-from models import TRANSFORMER_seq_to_seq
+import LSTM_seq_to_seq
+import CNN_seq_to_seq
+import TRANSFORMER_seq_to_seq
 
 # %% Data Preprocessing
 
