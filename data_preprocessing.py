@@ -39,7 +39,7 @@ def series(date, latitude, longitude, direction, input_window, output_window, da
     for j in range(1, 2 + (output_window - 2) // 24):
         dict_J['row_J_plus_' + str(j)] = data[(data['location_latitude'] == latitude) & (data['location_longitude'] == longitude) & (data['Date'] == date + pd.to_timedelta(j, unit='d')) & (data['Direction'] == direction)]
 
-    # Si on a pas de donnée pour un des jours
+    # Si on a pas de donnée pour un des jours, on ne fait rien
     for element in dict_J:
         if dict_J[element].empty:
             return(None)
@@ -84,7 +84,7 @@ def process_data(input_window=7, output_window=24, file='./Radar_Traffic_Counts.
     col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
-    # On normalise les données avec la méthode min-max
+    # On normalise les données de Volume avec la méthode min-max
     volume_max, volume_min = data['Volume'].max(), data['Volume'].min()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
     # Suppression des jours contenant des données manquantes
@@ -101,6 +101,7 @@ def process_data(input_window=7, output_window=24, file='./Radar_Traffic_Counts.
         result = series(date=date, latitude=latitude, longitude=longitude, direction=direction, input_window=input_window, output_window=output_window, data=data)
 
         if result is not None:
+            # On transforme le jour de la semaine en one-hot vector
             day_of_week_one_hot = list(np.eye(7)[day_of_week])
             target, serie = result
             for t, s in zip(target, serie):
