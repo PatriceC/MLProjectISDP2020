@@ -18,6 +18,10 @@ class CNN(nn.Module):
     def __init__(self, input_window, output_window):
         super(CNN, self).__init__()
 
+        self.input_window = input_window
+        self.output_window = output_window
+        self.name_model = "CNN"
+
         self.layer1 = nn.Sequential(
             nn.Conv1d(in_channels=1, out_channels=24, kernel_size=3, padding=1),
             nn.ReLU(),
