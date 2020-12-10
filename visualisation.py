@@ -7,17 +7,16 @@ Created on Thu Dec 9 23:30:00 2020
 
 import pandas as pd
 import numpy as np
+import torch
 
 import matplotlib.pyplot as plt
 
-import torch
-
 import data_preprocessing
-import LSTM_seq_to_seq
 
-def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09', '2018-08-10'], latitude=30.268652000000003, longitude=-97.759929, direction=0, epoch=0, pourcentage=0):
+
+def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09', '2018-08-10'], latitude=30.268652000000003, longitude=-97.759929, direction=0, epoch=None, pourcentage=None):
     """
-    Affiche les prédictions du modèle choisi pour la date, lieu et direction choisis
+    Affiche les prédictions du modèle choisi pour la date, lieu et direction choisis.
 
     Parameters
     ----------
@@ -39,7 +38,6 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
     pourcentage : int
         Pourcentage de l'epoch d'apprentissage
     """
-
     data = pd.read_csv('./Radar_Traffic_Counts.csv')
 
     # Préparation du Dataset
@@ -55,7 +53,7 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
     col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
-    data_tot = data_tot.groupby(col)['Volume'].sum().reset_index() # On garde les données totales car on aura besoin d'avoir accès aux jours avant les jours auxquels on souhaite faire des prédictions
+    data_tot = data_tot.groupby(col)['Volume'].sum().reset_index()  # On garde les données totales car on aura besoin d'avoir accès aux jours avant les jours auxquels on souhaite faire des prédictions
     # On va normaliser (méthode min-max) les valeurs
     volume_max, volume_min = data['Volume'].max(), data['Volume'].min()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
@@ -65,7 +63,7 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
     data = data.dropna()
     data_tot = data_tot.dropna()
 
-    # Ce sont les listes qui contiendront les dates et heures (x), volumes réels (t) et volume prédits (p) 
+    # Ce sont les listes qui contiendront les dates et heures (x), volumes réels (t) et volume prédits (p)
     x, t, p = [], [], []
 
     # Tous les intervalles de temps output_window, on va réaliser des prédictions seq-to-seq sur les output_window heures suivantes, et enregistrer ces prédictions pour les comparer, visuellement, aux valeurs réelles
@@ -79,7 +77,7 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
         # On regarde sur quelle ligne on se trouve
         row = data[(data['Date'] == date_row)]
         day_of_week = row['Day of Week']
-        
+
         # On va créer nos séries de données pour le jour désiré et l'output_window
         result = data_preprocessing.series(date=date_row, latitude=latitude, longitude=longitude, direction=direction, input_window=input_window, output_window=output_window, data=data_tot)
 
@@ -87,13 +85,13 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
             target, serie = result
             # On récupère les séries de valeurs à partir de l'heure qui nous intéresse, c'est-à-dire hour_current, puis on normalise pour inférer sur le modèle
             target_norm, serie_norm = torch.tensor((target[hour_current] - volume_min)/(volume_max - volume_min)), torch.tensor((serie[hour_current] - volume_min)/(volume_max - volume_min)).unsqueeze(0)
-            
+
             # On transforme notre jour de la semaine en matrice de one-hot vectors (toutes les lignes sont donc les mêmes)
             day_of_week_one_hot = torch.tensor(np.eye(7)[day_of_week])
-            
+
             # On infère pour obtenir nos prédictions
-            pred_norm = model.forward(day_of_week_one_hot, serie_norm).detach().squeeze(0)
-            
+            pred_norm = model.forward(day_of_week_one_hot, serie_norm.float()).detach().squeeze(0)
+
             # On dénormalise
             target_current = (target_norm * (volume_max - volume_min) + volume_min).tolist()
             pred_current = (pred_norm * (volume_max - volume_min) + volume_min).tolist()
@@ -104,23 +102,28 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
 
         # On incrémente la date de l'intervalle output_window
         current_date += pd.to_timedelta(output_window, unit='h')
-    
+
     # On visualise les prédictions vs la réalité et on enregistre le graphe
-    
+
     plt.figure(0)
-    plt.plot(x, t, color="green", label='Donnée réelle')
-    plt.plot(x, p, color="red", label='Prediction')
+    plt.plot_date(x, t, fmt='-', color="green", label='Donnée réelle')
+    plt.plot_date(x, p, fmt='-', color="red", label='Prediction')
     plt.xticks(rotation=45)
     plt.title('Data vs Pred')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
     plt.legend(loc='upper right')
-    plt.show()
-    plt.savefig('./visu/pred_vs_data_' + model.name_model + '_epoch_' + str(epoch) + '_pourcentage_' + str(pourcentage) + '%_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.png', dpi=300)
-    plt.close()
+    if epoch is None:
+        plt.show()
+    else:
+        plt.show()
+        plt.savefig('./visu/pred_vs_data_' + model.name_model + '_epoch_' + str(epoch) + '_pourcentage_' + str(pourcentage) + '%_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.png', dpi=300)
+        plt.close()
 
-def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018-08-10'], latitude=30.268652000000003, longitude=-97.759929, direction=0, epoch=0):
+
+def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018-08-10'], latitude=30.268652000000003, longitude=-97.759929, direction=0, epoch=None):
     """
-    A partir de la date date_range[0], réalise un forecast avec le modèle choisi jusqu'à la date date_range[1]
+    A partir de la date date_range[0], réalise un forecast avec le modèle choisi jusqu'à la date date_range[1].
+
     Pour cela, on ne prend que les données nécessaires pour la première prédiction (prédiction des premières 24h par exemple)
     puis utilise les prédictions pour réaliser les prédictions postérieures (pendant plusieurs semaines par exemple)
     Les prédictions sont donc biaisées au fur et à mesure; et l'on va tenter de représenter visuellement ici à quel
@@ -144,7 +147,6 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
     epoch : int
         Nombre d'epoch dans l'apprentissage du modèle
     """
-
     data = pd.read_csv('./Radar_Traffic_Counts.csv')
 
     # Préparation du Dataset
@@ -160,7 +162,7 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
     col = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Hour', 'Direction']
     col_no_hour = ['location_latitude', 'location_longitude', 'Year', 'Month', 'Day', 'Date', 'Day of Week', 'Direction']
     data = data.groupby(col)['Volume'].sum().reset_index()
-    data_tot = data_tot.groupby(col)['Volume'].sum().reset_index() # On garde les données totales car on aura besoin d'avoir accès aux jours avant les jours auxquels on souhaite faire des prédictions
+    data_tot = data_tot.groupby(col)['Volume'].sum().reset_index()  # On garde les données totales car on aura besoin d'avoir accès aux jours avant les jours auxquels on souhaite faire des prédictions
     # On va normaliser (méthode min-max) les valeurs
     volume_max, volume_min = data['Volume'].max(), data['Volume'].min()
     data = data.pivot_table(index=col_no_hour, columns='Hour', values='Volume').reset_index()
@@ -170,7 +172,7 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
     data = data.dropna()
     data_tot = data_tot.dropna()
 
-    # Ce sont les listes qui contiendront les dates et heures (x), volumes réels (t) et volume prédits (p) 
+    # Ce sont les listes qui contiendront les dates et heures (x), volumes réels (t) et volume prédits (p)
     x, t, p = [], [], []
 
     current_date = pd.to_datetime(date_range[0])
@@ -184,7 +186,7 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
         # On regarde sur quelle ligne on se trouve
         row = data[(data['Date'] == date_row)]
         day_of_week = row['Day of Week']
-        
+
         # On va créer nos séries de données pour le jour désiré et l'output_window
         result = data_preprocessing.series(date=date_row, latitude=latitude, longitude=longitude, direction=direction, input_window=input_window, output_window=output_window, data=data_tot)
 
@@ -203,13 +205,13 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
 
             # On récupère les séries de valeurs à partir de l'heure qui nous intéresse, c'est-à-dire hour_current, puis on normalise pour inférer sur le modèle
             target_norm, input_norm = torch.tensor((target - volume_min)/(volume_max - volume_min)), torch.tensor((inputs_for_prediction - volume_min)/(volume_max - volume_min)).unsqueeze(0)
-            
+
             # On transforme notre jour de la semaine en matrice de one-hot vectors (toutes les lignes sont donc les mêmes)
             day_of_week_one_hot = torch.tensor(np.eye(7)[day_of_week])
-            
+
             # On infère pour obtenir nos prédictions
-            pred_norm = model.forward(day_of_week_one_hot, input_norm).detach().squeeze(0)
-            
+            pred_norm = model.forward(day_of_week_one_hot, input_norm.float()).detach().squeeze(0)
+
             # On dénormalise
             target_current = (target_norm * (volume_max - volume_min) + volume_min).tolist()
             pred_current = (pred_norm * (volume_max - volume_min) + volume_min).tolist()
@@ -223,15 +225,18 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
 
         # On incrémente la date de l'intervalle output_window
         current_date += pd.to_timedelta(output_window, unit='h')
-    
+
     # On visualise les prédictions vs la réalité et on enregistre le graphe
     plt.figure(0)
-    plt.plot(x, t, color="green", label='Donnée réelle')
-    plt.plot(x, p, color="red", label='Prediction')
+    plt.plot_date(x, t, fmt='-', color="green", label='Donnée réelle')
+    plt.plot_date(x, p, fmt='-', color="red", label='Prediction')
     plt.xticks(rotation=45)
     plt.title('Data vs Pred')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
     plt.legend(loc='upper right')
-    plt.show()
-    plt.savefig('./visu/forecast_' + model.name_model + '_epoch_' + str(epoch) + '_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.png', dpi=300)
-    plt.close()
+    if epoch is None:
+        plt.show()
+    else:
+        plt.show()
+        plt.savefig('./visu/forecast_' + model.name_model + '_epoch_' + str(epoch) + '_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.png', dpi=300)
+        plt.close()

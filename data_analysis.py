@@ -2,7 +2,7 @@
 """
 Created on Fri Nov 27 19:19:45 2020
 
-@author: Patrice CHANOL
+@author: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 """
 
 import pandas as pd
@@ -22,7 +22,7 @@ col = ['Direction', 'location_latitude', 'location_longitude',
 
 data_pd = data_load.groupby(col)['Volume'].sum().reset_index()
 
-data_pd['Date'] = pd.to_datetime(data_pd[['Year', 'Month', 'Day','Hour']])
+data_pd['Date'] = pd.to_datetime(data_pd[['Year', 'Month', 'Day', 'Hour']])
 data_pd.index = data_pd['Date']
 
 data_pd_0 = data_pd[data_pd['Direction'] == 0].sort_values(['Year', 'Month', 'Day', 'Hour'])
