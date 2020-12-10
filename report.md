@@ -42,13 +42,7 @@ Ensuite, on aura une couche fully connected avec comme paramètres la sortie de 
 
 <img src="report/CNN_training.gif" width="75%"/>
 
-​																		Evolution des prédictions pendant l'apprentissage
-
 <img src="report/CNN_forecast.gif" width="75%"/>
-
-​																		Données vs Prédictions à partir des prédictions
-
-
 
 En fonction de la taille de la fenêtre de sorti le modèle sera plus ou moins performant pour prédire ou pour forecast.
 

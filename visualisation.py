@@ -113,12 +113,13 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
     plt.figure(0)
     res['t'].plot(color="green", label='Donnée réelle')
     res['p'].plot(color="red", label='Prediction')
-    plt.title(model.name_model +': Data vs Pred')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
     plt.legend(loc='upper right')
     if epoch is None:
+        plt.title(model.name_model +': Data vs Pred')
         plt.show()
     else:
+        plt.title(model.name_model +': Data vs Pred, Epoch : '+ str(epoch))
         plt.show()
         plt.savefig('./visu/pred_vs_data_' + model.name_model + '_epoch_' + str(epoch) + '_pourcentage_' + str(pourcentage) + '%_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.png', dpi=300)
         plt.close()
@@ -239,12 +240,13 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
     plt.figure(0)
     res['t'].plot(color="green", label='Donnée réelle')
     res['p'].plot(color="red", label='Prediction')
-    plt.title(model.name_model +': Data vs Pred')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
     plt.legend(loc='upper right')
     if epoch is None:
+        plt.title(model.name_model +': Forecast')
         plt.show()
     else:
+        plt.title(model.name_model +': Forecast, Epoch :'+ str(epoch))
         plt.show()
         plt.savefig('./visu/forecast_' + model.name_model + '_epoch_' + str(epoch) + '_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.png', dpi=300)
         plt.close()
