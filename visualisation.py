@@ -105,11 +105,15 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
 
     # On visualise les prédictions vs la réalité et on enregistre le graphe
 
+    res = pd.DataFrame()
+    res['x'] = x
+    res['t'] = t
+    res['p'] = p
+    res.index = res['x']
     plt.figure(0)
-    plt.plot_date(x, t, fmt='-', color="green", label='Donnée réelle')
-    plt.plot_date(x, p, fmt='-', color="red", label='Prediction')
-    plt.xticks(rotation=45)
-    plt.title('Data vs Pred')
+    res['t'].plot(color="green", label='Donnée réelle')
+    res['p'].plot(color="red", label='Prediction')
+    plt.title(model.name_model +': Data vs Pred')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
     plt.legend(loc='upper right')
     if epoch is None:
@@ -227,10 +231,14 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
         current_date += pd.to_timedelta(output_window, unit='h')
 
     # On visualise les prédictions vs la réalité et on enregistre le graphe
-    plt.figure(1)
-    plt.plot_date(x, t, fmt='-', color="green", label='Donnée réelle')
-    plt.plot_date(x, p, fmt='-', color="red", label='Prediction')
-    plt.xticks(rotation=45)
+    res = pd.DataFrame()
+    res['x'] = x
+    res['t'] = t
+    res['p'] = p
+    res.index = res['x']
+    plt.figure(0)
+    res['t'].plot(color="green", label='Donnée réelle')
+    res['p'].plot(color="red", label='Prediction')
     plt.title(model.name_model +': Data vs Pred')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
     plt.legend(loc='upper right')
