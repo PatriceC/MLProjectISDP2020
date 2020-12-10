@@ -2,7 +2,7 @@
 """
 Created on Sat Dec  5 23:49:32 2020
 
-@author: Patrice CHANOL
+@author: Patrice CHANOL & Corentin MORVAN-CHAUMEIL
 
 https://github.com/oliverguhr/transformer-time-series-prediction/blob/master/transformer-multistep.py
 """
@@ -84,6 +84,7 @@ class Transformer(nn.Module):
         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         return mask
+
     def save(self):
         """
             Enregistre le modèle pour inférence dans le futur
