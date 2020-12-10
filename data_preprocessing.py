@@ -14,9 +14,6 @@ import random
 
 def series(date, latitude, longitude, direction, input_window, output_window, data):
     """
-    Retourne 3 séries de longueur_serie valeurs de Volume pour un jour,
-    une position, et une direction
-
     Parameters
     ----------
     date : TYPE datetime
@@ -106,7 +103,6 @@ def process_data(input_window=7, output_window=24, file='./Radar_Traffic_Counts.
         if result is not None:
             day_of_week_one_hot = list(np.eye(7)[day_of_week])
             target, serie = result
-            # On récupère les heures pour plot
             for t, s in zip(target, serie):
                 # On normalise les valeurs
                 s_norm = list((s - volume_min)/(volume_max - volume_min))
@@ -123,8 +119,8 @@ def process_data(input_window=7, output_window=24, file='./Radar_Traffic_Counts.
     data_train = np.array(data_train)
     data_test = np.array(data_test)
     # Enregistrement des données
-    torch.save(data_train, 'data_train_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
-    torch.save(data_test, 'data_test_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
+    torch.save(data_train, './data/data_train_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
+    torch.save(data_test, './data/data_test_' + str(input_window) + '_days_to_' + str(output_window) + '_hours.txt')
     
     return(data_train, data_test)
 

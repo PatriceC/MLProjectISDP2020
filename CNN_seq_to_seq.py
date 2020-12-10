@@ -12,6 +12,7 @@ import torch.nn as nn
 
 class CNN(nn.Module):
     """
+        Implémentation d'un CNN seq-to-seq
         Classe du modèle CNN final utilisé
     """
     def __init__(self, input_window, output_window):
