@@ -52,10 +52,12 @@ Ensuite, on aura une couche fully connected avec comme paramètres la sortie de 
 
 En fonction de la taille de la fenêtre de sorti le modèle sera plus ou moins performant pour prédire ou pour forecast.
 
-En effet, une très petit fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusque. A l'inverse, les modèles avec un fenêtre de sortie plus grande seront moins performant pour prédire mais bien plus efficace pour forecast.
+En effet, une très petite fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusque. A l'inverse, les modèles avec un fenêtre de sortie plus grande seront moins performant pour prédire mais bien plus efficace pour forecast.
 
 ### LSTM
 
+Il s'agit d'un modèle LSTM à 1 couche avec 200 hidden states.
+SUITE et images à venir.........
 
 
 ## Attention Model
