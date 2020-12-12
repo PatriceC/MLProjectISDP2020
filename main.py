@@ -7,6 +7,7 @@ Created on Mon Nov  9 12:49:11 2020
 
 import torch as torch
 import torch.nn as nn
+from sys import exit
 
 import data_preprocessing
 import model_training
@@ -23,13 +24,19 @@ input_window, output_window = 7, 24
 
 data_input = input("Avez-vous déjà les fichiers {} et {} ? [O/N]\n".format('data/data_train_{}_days_to_{}_hours.txt'.format(input_window, output_window), 'data/data_test_{}_days_to_{}_hours.txt'.format(input_window, output_window)))
 
-if data_input != 'O':
+if data_input == 'O':
+    try:
+        # Ou alors on récupère un dataset déjà créé
+        data_train = torch.load('./data/data_train_{}_days_to_{}_hours.txt'.format(input_window, output_window))
+        data_test = torch.load('./data/data_test_{}_days_to_{}_hours.txt'.format(input_window, output_window))
+    except FileNotFoundError:
+        print("Pas de fichiers trouvés")
+        continuer = input('Souhaitez-vous générer le dataset ? [O/N]\n')
+elif data_input != 'O' or continuer == 'O':
     # On crée un dataset train/test pour l'apprentissage de notre modèle
     data_train, data_test = data_preprocessing.process_data(input_window, output_window)
 else:
-    # Ou alors on récupère un dataset déjà créé
-    data_train = torch.load('./data/data_train_{}_days_to_{}_hours.txt'.format(input_window, output_window))
-    data_test = torch.load('./data/data_test_{}_days_to_{}_hours.txt'.format(input_window, output_window))
+    exit()
 
 batch_size = 256
 
@@ -68,15 +75,21 @@ elif nom_model == 'Transformer':
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 else:
-    print("Erreur dans le choix du modèle")
+    exit("Erreur dans le choix du modèle")
 
 # %% Training and Testing
 
 trained = input('Souhaitez-vous charger un modèle pré-entrainé avec les mêmes paramètres ? [O/N]\n')
 if trained == 'O':
-    model.load()
-else:
+    try:
+        model.load()
+    except FileNotFoundError:
+        print("Pas de modèle pré-entrainé")
+        continuer = input('Souhaitez-vous entrainer le modèle ? [O/N]\n')
+elif trained != 'O' or continuer == 'O':
     model, test_loss_list = model_training.main(model, criterion, optimizer, scheduler, data_train_loader, data_test_loader, num_epochs, input_window, output_window, batch_size)
+else:
+    exit()
 
 # %% Validation
 

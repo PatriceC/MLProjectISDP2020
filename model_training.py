@@ -9,6 +9,7 @@ import numpy as np
 import torch
 import time
 import visualisation
+from datetime import datetime
 
 
 def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_loader, num_epochs, input_window, output_window, batch_size):
@@ -46,6 +47,8 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
         DESCRIPTION. test loss
 
     """
+    dateTimeObj = datetime.now()
+    print('Début Entrainement : ', dateTimeObj.hour, 'H', dateTimeObj.minute)
     test_loss_list = []
     n_batches = len(data_train_loader)
     # On va entrainer le modèle num_epochs fois
@@ -53,6 +56,8 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
 
         # Temps epoch
         epoch_start_time = time.time()
+        dateTimeObj = datetime.now()
+        print('Début epoch', epoch, ':', dateTimeObj.hour, 'H', dateTimeObj.minute)
         # Modèle en mode entrainement
         model.train()
         # Pourcentage du Dataset réaliser
