@@ -237,7 +237,7 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
     res['t'] = t
     res['p'] = p
     res.index = res['x']
-    plt.figure(0)
+    plt.figure(1)
     res['t'].plot(color="green", label='Donnée réelle')
     res['p'].plot(color="red", label='Prediction')
     plt.axis([x[0], x[-1], 0, max(max(t), max(p))])
