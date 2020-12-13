@@ -8,7 +8,8 @@ Nous avons réalisé une très simple analyse des données par analyse de graphe
 
 Tout d'abord, nous avons décidé de prédire les volumes de voitures pour chaque localisation, chaque direction et ce par heure.
 
-Ici, nous affichons les volumes horaires du 09 Juillet 2018 au 10 Aout 2018 pour une direction.<img src="report/Data_analysis.png" width="100%"/>
+Ici, nous affichons les volumes horaires du 09 Juillet 2018 au 10 Aout 2018 pour une direction.
+<img src="report/Data_Analysis.png" width="100%"/>
 
 Nous pouvons remarqué une saisonnalité journalière et hebdomadaire des volumes.
 
@@ -40,7 +41,7 @@ Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sor
 
 <img src="report/CNN_loss.png"/>
 
-<img src="report/CNN_training.gif" width="75%"/>
+<img src="report/CNN_Training.gif" width="75%"/>
 
 <img src="report/CNN_forecast.gif" width="75%"/>
 
