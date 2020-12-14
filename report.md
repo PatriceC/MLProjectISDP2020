@@ -22,7 +22,9 @@ Nous pouvons remarqué une saisonnalité journalière et hebdomadaire des volume
 
 ## Data Preprocessing
 
-Après une étude des différents features, et après des premiers tests sur les modèles nous parlerons plus bas, nous avons choisis de ne garder comme paramètres que: 
+Les données du datset initial étant présentées par lieu, direction et heure précise (toutes les 15 min), nous avons décidé de les agréger par lieu et direction, et par jour, en créant d'ores et déjà des séries de volumes de trafic consécutifs. Ainsi, pour un jour, un lieu, une direction, nous avons des séries de 24 valeurs de volumes; chacune correspondant à une heure différente (de minuit (0h) à 23h). Pour une meilleure convergence future des modèles que nous allons développer, nous avons aussi normalisé ces volmues selon la méthode min-max.
+
+Après une étude des différents features, et après des premiers tests sur les modèles dont nous parlerons plus bas, nous avons choisi de ne garder comme paramètres que: 
 
 - Les volumes horaires sur une période de longueur fixée en jour : fenêtre d'entrée (nombres de jours) --> C'est ce qui représentera notre série temporelle
 - Le jour de la semaine sous forme de one-hot-vector de la première heure de la fenètre à prédire --> Aide le modèle à perfomer car le volume de voitures ne se comporte pas de la même facon en semaine et le week-end par exemple; mais il y a aussi des disparités entre les jours de la semaine: le lundi et le vendredi par exemple
