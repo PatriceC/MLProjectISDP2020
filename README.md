@@ -4,7 +4,3 @@ ML project on "Radar Traffic Data. Traffic data collected from radar sensors dep
 ## Run
 
 Execute main.py . Some models are already trained and accessible in /models
-
-
-
-For more information look report.md
