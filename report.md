@@ -23,8 +23,9 @@ Nous pouvons remarqué une saisonnalité journalière et hebdomadaire des volume
 
 Ainsi, nous avons choisis de garder comme paramètres : 
 
-- Les volumes horaires sur une période de longueur T : fenêtre d'entrée
-- Le jour de la semaine sous forme de one-hot-vector
+- Les volumes horaires sur une période de longueur fixée en jour : fenêtre d'entrée (nombres de jours)
+- Le jour de la semaine sous forme de one-hot-vector de la première heure de la fenètre à prédire
+- On va prédire une fenètre de longueur fixée (24h)
 
 Il pourrait être intéressant d'utiliser d'autres données mais elle ne semble pas plus nécessaire à prédire et n'améliore que très peu les modèles.
 
@@ -50,9 +51,17 @@ En effet, une très petit fenêtre de sortie permet au modèle d'être très pr�
 
 Toutefois, ce type de modèle reste limitée notamment pour réaliser du forecast. En effet, plusieurs tentatives de complexification du modèle, notamment avec une tentative de down sampling pour capter plus d'information au niveau des fréquences de variations, n'améliorent pas considérablement le modèle.
 
+__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+
 ### LSTM
 
 
+
+<img src="report/LSTM_loss.png"/>
+
+<img src="report/LSTM_training.gif" width="75%"/>
+
+<img src="report/LSTM_forecast.gif" width="75%"/>
 
 ## Attention Model
 
@@ -76,7 +85,17 @@ Toutefois, ce modèle simple est déjà performant.
 
 Comme attendu, le modèle apprend  et retient les comportements, ainsi il est à la fois pertinents pour prédire mais aussi pour forecast.
 
+## Conclusion
 
+Les différents modèles donnent des résultats différents, si il est clair que le CNN est le modèle le moins performant, la différence entre le LSTM et le Trnasformer est plus complexe. En effet, si le puissance de calcul nous le permettait, l'optimisation des hyperparamètres aurait nous permettre de créer un vrai classement.
+
+Pour information, les temps d'entrainement sont de l'odre suivant : 
+
+CNN : 200s/epoch
+
+LSTM : 1500s/epoch
+
+Transformer: 8000s/epoch
 
 ## References
 
