@@ -4,6 +4,9 @@ Authors: Patrice CHANOL & Corentin MORVAN--CHAUMEIL
 
 ## Data Analysis
 
+Le jeu de données étudié ici est disponible sur Kaggle suivant le lien suivant: https://www.kaggle.com/vinayshanbhag/radar-traffic-data.
+On y découvre des volumes de trafic automobile (la target que nous tenterons ici de prédire) en fonction de différentes informations que sont les lieus (noms et coordonnées) où ont été relevés ces volumes, les dates (années, mois, jour, jour de la semaine, heure, ...) et les directions des véhicules.
+
 Nous avons réalisé une très simple analyse des données par analyse de graphe.
 
 Tout d'abord, nous avons décidé de prédire les volumes de voitures pour chaque localisation, chaque direction et ce par heure.
