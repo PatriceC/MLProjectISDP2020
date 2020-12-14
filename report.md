@@ -22,21 +22,25 @@ Nous pouvons remarqué une saisonnalité journalière et hebdomadaire des volume
 
 ## Data Preprocessing
 
-Ainsi, nous avons choisis de garder comme paramètres : 
+Après une étude des différents features, et après des premiers tests sur les modèles nous parlerons plus bas, nous avons choisis de ne garder comme paramètres que: 
 
-- Les volumes horaires sur une période de longueur fixée en jour : fenêtre d'entrée (nombres de jours)
-- Le jour de la semaine sous forme de one-hot-vector de la première heure de la fenètre à prédire
-- On va prédire une fenètre de longueur fixée (24h)
+- Les volumes horaires sur une période de longueur fixée en jour : fenêtre d'entrée (nombres de jours) --> C'est ce qui représentera notre série temporelle
+- Le jour de la semaine sous forme de one-hot-vector de la première heure de la fenètre à prédire --> Aide le modèle à perfomer car le volume de voitures ne se comporte pas de la même facon en semaine et le week-end par exemple; mais il y a aussi des disparités entre les jours de la semaine: le lundi et le vendredi par exemple
 
-Il pourrait être intéressant d'utiliser d'autres données mais elle ne semble pas plus nécessaire à prédire et n'améliore que très peu les modèles.
+En effet, les données de direction et de coordonnées n'ont pas de véritable impact sur la performance; et pour preuve leur poids dans les modèles entraînés est si faible qu'ils peuvent être négliglés.
+De même, les données d'années ou de mois, sous forme de one-hot vectors, n'aident pas les modèles à mieux performer. En fait, les données qu'ils contiennent (le trafic possède une saisonnalité sur une année et donc au fil des mois) se retrouvent déjà dans les séries temporrelles.
+
+Ainsi, on va pouvoir prédire, étant donnés un jour de la semaine et une série de valeurs passées, la (ou les) prochains valeurs de volume de trafic automobiles.
 
 ## Models
+
+Pour tenter de prédire les volumes de trafic, et ce sur un fenêtre désirée, nous avons développé des modèles seq-to-seq: l'entrée est une séquence de longueur input_window (ici on prendra souvent 7 jours), la sortie est une sortie de longueur output_window (ici on prendra souvent 24h). Pour cela, nous avons décidé d'itérer en testant d'abord les perfomances d'un modèle CNN à 1 dimension, et d'un modèle LSTM. Nous nous sommes ensuite penchés sur l'utilisation d'un modèle à attention avec un Transformer, basé sur un système de positional encoding.
 
 ### CNN
 
 Un CNN 1D est pertinent quand on espère sortir des informations intéressantes de petit segment de donnée sur tout le jeu de donnée. Ici, nous avons implémenté un CNN simple comprenant 2 couches de convolutions.
 
-La fenêtre d'entrée va passer  dans une première couche pour en sortir 24 nouvelles, puis les 24 vont passer dans une deuxième couche pour en sortir 48.
+La fenêtre de valeurs d'entrée va passer dans une première couche pour en sortir 24 nouvelles, puis les 24 vont passer dans une deuxième couche pour en sortir 48.
 
 Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sortie de la deuxième convolution, le one-hot vector du jour de la semaine et on va prédire l'output_window.
 
@@ -46,12 +50,11 @@ Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sor
 
 <img src="report/CNN_forecast.gif" width="75%"/>
 
-En fonction de la taille de la fenêtre de sorti le modèle sera plus ou moins performant pour prédire ou pour forecast.
+En fonction de la taille de la fenêtre de sortie le modèle sera plus ou moins performant pour prédire ou pour forecast.
 
-En effet, une très petite fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusque. A l'inverse, les modèles avec une fenêtre de sortie plus grande seront moins performant pour prédire mais bien plus efficace pour forecast.
+En effet, une très petite fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusques. A l'inverse, les modèles avec une fenêtre de sortie plus grande seront moins performants pour prédire mais bien plus efficaces pour forecast.
 
-Toutefois, ce type de modèle reste limitée notamment pour réaliser du forecast. En effet, plusieurs tentatives de complexification du modèle, notamment avec une tentative de down sampling pour capter plus d'information au niveau des fréquences de variations, n'améliorent pas considérablement le modèle.
-
+Toutefois, ce type de modèle reste limité notamment pour réaliser du forecast. En effet, plusieurs tentatives de complexification du modèle, notamment avec une tentative de down sampling pour capter plus d'information au niveau des fréquences de variations, n'améliorent pas considérablement le modèle.
 
 ### LSTM
 
@@ -101,15 +104,14 @@ Comme attendu, le modèle apprend  et retient les comportements, ainsi il est à
 
 ## Conclusion
 
-Les différents modèles donnent des résultats différents, si il est clair que le CNN est le modèle le moins performant, la différence entre le LSTM et le Trnasformer est plus complexe. En effet, si le puissance de calcul nous le permettait, l'optimisation des hyperparamètres aurait nous permettre de créer un vrai classement.
+Les différents modèles donnent des résultats différents; s'il est clair que le CNN est le modèle le moins performant, la différence entre le LSTM et le Transformer est plus complexe car tous deux performent relativement bien sur le jeu de données proposé. Néanmoins, ceux-ci sont quelque peu "cher" en coût de computation par rapport au CNN puisqu'ils mettent plusieurs heures pour être entrainés.
 
 Pour information, les temps d'entrainement sont de l'ordre suivant : 
+- CNN : 200s/epoch
+- LSTM : 1500s/epoch
+- Transformer: 8000s/epoch
 
-CNN : 200s/epoch
-
-LSTM : 1500s/epoch
-
-Transformer: 8000s/epoch
+Pour aller plus loin, il pourrait être intéressant de creuser davantage la piste des Transformers de par la puissance que ceux-ci représentent. En effet, après avoir prouvé leur performance pour la prédiction de séries temporelles, après avoir véritablement révolutionné le domaine du NLP ces dernières années, notamment à travers les outils que sont Bert et GPT, ils sont depuis quelques mois en train de surpasser les performances des modèles à convolution, et ce en parvenant à atteindre les mêmes scores de classification d'images que les modèles de l'état de l'art actuel.
 
 ## References
 
