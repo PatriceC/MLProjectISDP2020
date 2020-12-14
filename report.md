@@ -64,10 +64,16 @@ On observe la courbe d'apprentissage de la base test sur 10 epochs; in remarque 
 
 <img src="report/LSTM_loss.png"/>
 
+Pour visualiser les résultats, on choisit une direction et un lieu précis, et pour chaque segment de 7 jours consécutifs, on prédit les 24 heures qui suivent. Grâce à nos fonctions de visualisation, on peut observer la performance du modèle, pour ce lieu et direction, sur un mois complet.
 
 Sur l'exemple de visualisation choisi, on remarque que le fait de laisser converger 10 epochs permet de mieux capter et prédire les moments de fortes affluences des voitures sur la route.
 
 <img src="report/LSTM_training.gif" width="75%"/>
+
+De même, on visualise le même endroit aux mêmes dates mais cette fois en forecast: avec les 7 premiers jours, on prédit les 24 heures qui suivent, puis on prend en input les 6 derniers jours et les dernières 24h que l'on vient de prédire pour tenter de deviner les 24h suivantes. En itérant ainsi, au bout de 7 jours, nous ne réalisons plus que des prédictions avec, en input, des valeurs elles-mêmes prédites par le modèle, donc biaisées. Ainsi, on est en mesure de prédire la circulation dans les prochains jours en ayant seuelement entraîner à prédire sur les 24h suivantes.
+
+Obtenir de bons résultats est relativement compliqué en général car le modèle finit souvent par soit diverger, soit converger vers une valeur moyenne, lorsque l'on regarde d'autres exemples de forecast de time series sur internet.
+Ici, on remarque sur le GIF suivant que le forecast est très performant à l'epoch 3.
 
 <img src="report/LSTM_forecast.gif" width="75%"/>
 
