@@ -38,7 +38,7 @@ Un CNN 1D est pertinent quand on espère sortir des informations intéressantes 
 
 La fenêtre d'entrée va passer  dans une première couche pour en sortir 24 nouvelles, puis les 24 vont passer dans une deuxième couche pour en sortir 48.
 
-Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sortie de la deuxième convolution, les one-hot vectors des jours de la semaine et on va prédire l'output_window
+Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sortie de la deuxième convolution, le one-hot vector du jour de la semaine et on va prédire l'output_window.
 
 <img src="report/CNN_loss.png"/>
 
@@ -48,17 +48,24 @@ Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sor
 
 En fonction de la taille de la fenêtre de sorti le modèle sera plus ou moins performant pour prédire ou pour forecast.
 
-En effet, une très petite fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusque. A l'inverse, les modèles avec un fenêtre de sortie plus grande seront moins performant pour prédire mais bien plus efficace pour forecast.
+En effet, une très petite fenêtre de sortie permet au modèle d'être très précis en prédiction mais très mauvais en forecast. Il aura tendance à très vite rester constant à la même valeur car il a du mal à prédire les changement brusque. A l'inverse, les modèles avec une fenêtre de sortie plus grande seront moins performant pour prédire mais bien plus efficace pour forecast.
 
 Toutefois, ce type de modèle reste limitée notamment pour réaliser du forecast. En effet, plusieurs tentatives de complexification du modèle, notamment avec une tentative de down sampling pour capter plus d'information au niveau des fréquences de variations, n'améliorent pas considérablement le modèle.
 
 
 ### LSTM
 
-Il s'agit d'un modèle LSTM à 1 couche avec 200 hidden states.
-SUITE et images à venir.........
+En tant que réseau de neurones récurrent, le LSTM est particulièrement bien adapté à la prédiction de séries temporelles; notamment grâce à son architecture formée de forget gates et input gates qui lui permet de repérer les informations déterminantes du comportement des séries de valeurs.
+
+Dans notre cas, nous avons mis en place un modèle LSTM à une couche avec 200 hidden states.
+En entrée, ce LSTM reçoit une série de valeurs qui représente les volumes de voitures heure par heure. Nous ne gardons en sortie que les hidden states de la dénière cellule et les faisons entrer dans un fully connected avec un one-hot vector (de taille 7) qui représente le jour de la semaine de la première heure que nous tentons de prédire. Le fully connected est créé de manière à pouvoir prédire la longueur d'output window souhaité. Ainsi, si nous souhaitons entrainer le modèle pour prédire les 24 prochaines heures, le fully connected a une dimension de sortie de longueur 24.
+
+On observe la courbe d'apprentissage de la base test sur 10 epochs; in remarque que l'algo converge rapidement, c'est pour cela que l'on diminue le learning rate pour esayer d'améliorer la convergence.
 
 <img src="report/LSTM_loss.png"/>
+
+
+Sur l'exemple de visualisation choisi, on remarque que le fait de laisser converger 10 epochs permet de mieux capter et prédire les moments de fortes affluences des voitures sur la route.
 
 <img src="report/LSTM_training.gif" width="75%"/>
 
@@ -90,7 +97,7 @@ Comme attendu, le modèle apprend  et retient les comportements, ainsi il est à
 
 Les différents modèles donnent des résultats différents, si il est clair que le CNN est le modèle le moins performant, la différence entre le LSTM et le Trnasformer est plus complexe. En effet, si le puissance de calcul nous le permettait, l'optimisation des hyperparamètres aurait nous permettre de créer un vrai classement.
 
-Pour information, les temps d'entrainement sont de l'odre suivant : 
+Pour information, les temps d'entrainement sont de l'ordre suivant : 
 
 CNN : 200s/epoch
 
