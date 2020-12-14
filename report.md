@@ -42,7 +42,7 @@ Ensuite, on aura plusieurs couches fully connected avec comme paramètres la sor
 
 <img src="report/CNN_loss.png"/>
 
-<img src="report/CNN_Training.gif" width="75%"/>
+<img src="report/CNN_training.gif" width="75%"/>
 
 <img src="report/CNN_forecast.gif" width="75%"/>
 
@@ -81,7 +81,7 @@ Il aurait pu être intéressant aussi implémenter un Transformer qui prend en c
 
 Toutefois, ce modèle simple est déjà performant.
 
-<img src="report/Transformer_Training.gif" width="75%"/>
+<img src="report/Transformer_training.gif" width="75%"/>
 
 <img src="report/Transformer_forecast.gif" width="75%"/>
 
