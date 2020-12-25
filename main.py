@@ -38,7 +38,7 @@ elif data_input != 'O' or continuer == 'O':
 else:
     exit()
 
-batch_size = 256
+batch_size = 128
 
 data_train_loader, data_test_loader = data_preprocessing.data_loader(data_train, data_test, input_window, output_window, batch_size=batch_size)
 
@@ -46,30 +46,30 @@ data_train_loader, data_test_loader = data_preprocessing.data_loader(data_train,
 
 model_dispo = ['LSTM', 'CNN', 'Transformer']
 nom_model = input("Choisir le modèle à traiter parmis : {}\n".format(model_dispo))
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if nom_model == 'LSTM':
-    model = LSTM_seq_to_seq.LSTM(input_window, output_window)
+    model = LSTM_seq_to_seq.LSTM(input_window, output_window).to(device)
     print(model)
     criterion = nn.MSELoss()
-    learning_rate = 0.002
+    learning_rate = 0.001
     weight_decay = 0.0001
     num_epochs = 10
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 elif nom_model == 'CNN':
-    model = CNN_seq_to_seq.CNN(input_window, output_window)
+    model = CNN_seq_to_seq.CNN(input_window, output_window).to(device)
     print(model)
     criterion = nn.MSELoss()
-    learning_rate = 0.002
+    learning_rate = 0.001
     weight_decay = 0.0001
     num_epochs = 10
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.50)
 elif nom_model == 'Transformer':
-    model = TRANSFORMER_seq_to_seq.Transformer(input_window, output_window)
+    model = TRANSFORMER_seq_to_seq.Transformer(input_window, output_window).to(device)
     print(model)
     criterion = nn.MSELoss()
-    learning_rate = 0.002
+    learning_rate = 0.001
     weight_decay = 0.0001
     num_epochs = 10
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)

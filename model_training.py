@@ -47,6 +47,7 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
         DESCRIPTION. test loss
 
     """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dateTimeObj = datetime.now()
     print('Début Entrainement : ', dateTimeObj.hour, 'H', dateTimeObj.minute)
     test_loss_list = []
@@ -73,8 +74,8 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
             # Initializing a gradient as 0 so there is no mixing of gradient among the batches
             optimizer.zero_grad()
             # Forward pass
-            output = model.forward(day_of_week, serie_input.float())
-            loss = criterion(output, serie_output.float())
+            output = model.forward(day_of_week.to(device), serie_input.float().to(device))
+            loss = criterion(output, serie_output.float().to(device))
             # Propagating the error backward
             loss.backward()
 
@@ -95,8 +96,8 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
                 model.eval()
                 with torch.no_grad():
                     for ((day_of_week_t, serie_input_t), serie_output_t) in data_test_loader:
-                        output_t = model.forward(day_of_week_t, serie_input_t.float())
-                        loss_t = criterion(output_t, serie_output_t.float())
+                        output_t = model.forward(day_of_week_t.to(device), serie_input_t.float().to(device))
+                        loss_t = criterion(output_t, serie_output_t.float().to(device))
                         test_loss_batch.append(loss_t.item())
                 test_loss = np.mean(test_loss_batch)
                 test_loss_list.append(test_loss)
@@ -109,6 +110,7 @@ def main(model, criterion, optimizer, scheduler, data_train_loader, data_test_lo
                 visualisation.pred_vs_reality(model, input_window, output_window, epoch=epoch, pourcentage=round(100*pourcentage))
                 pourcentage += 0.1
                 start_time = time.time()
+                model.train()
 
         print('Fin epoch : {}, Temps de l\'epoch : {}s'.format(epoch, round(time.time() - epoch_start_time)))
 

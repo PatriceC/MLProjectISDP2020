@@ -29,7 +29,8 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, x):
         """Forward Pass."""
-        return x + self.pe[:x.size(0), :]
+        device = x.device
+        return x + self.pe[:x.size(0), :].to(device)
 
 
 class Transformer(nn.Module):
@@ -70,10 +71,10 @@ class Transformer(nn.Module):
 
     def forward(self, day_of_week, src):
         """Forward Pass."""
-        src = torch.cat((src, torch.zeros(src.size(0), self.output_window)), dim=1)
+        device = src.device
+        src = torch.cat((src, torch.zeros(src.size(0), self.output_window).to(device)), dim=1)
         src = src.transpose(0, 1).unsqueeze(2)
         if self.src_mask is None or self.src_mask.size(0) != len(src):
-            device = src.device
             mask = self._generate_square_subsequent_mask(len(src)).to(device)
             self.src_mask = mask
 

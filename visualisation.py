@@ -38,6 +38,7 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
     pourcentage : int
         Pourcentage de l'epoch d'apprentissage
     """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data = pd.read_csv('./Radar_Traffic_Counts.csv')
 
     # Préparation du Dataset
@@ -90,7 +91,7 @@ def pred_vs_reality(model, input_window, output_window, date_range=['2018-07-09'
             day_of_week_one_hot = torch.tensor(np.eye(7)[day_of_week])
 
             # On infère pour obtenir nos prédictions
-            pred_norm = model.forward(day_of_week_one_hot, serie_norm.float()).detach().squeeze(0)
+            pred_norm = model.forward(day_of_week_one_hot.to(device), serie_norm.float().to(device)).detach().squeeze(0)
 
             # On dénormalise
             target_current = (target_norm * (volume_max - volume_min) + volume_min).tolist()
@@ -152,6 +153,7 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
     epoch : int
         Nombre d'epoch dans l'apprentissage du modèle
     """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data = pd.read_csv('./Radar_Traffic_Counts.csv')
 
     # Préparation du Dataset
@@ -215,7 +217,7 @@ def forecast(model, input_window, output_window, date_range=['2018-07-09', '2018
             day_of_week_one_hot = torch.tensor(np.eye(7)[day_of_week])
 
             # On infère pour obtenir nos prédictions
-            pred_norm = model.forward(day_of_week_one_hot, input_norm.float()).detach().squeeze(0)
+            pred_norm = model.forward(day_of_week_one_hot.to(device), input_norm.float().to(device)).detach().squeeze(0)
 
             # On dénormalise
             target_current = (target_norm * (volume_max - volume_min) + volume_min).tolist()
